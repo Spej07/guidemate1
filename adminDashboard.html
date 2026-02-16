@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cebu Admin Command | AdventureSync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="adminDashboard.css">
+</head>
+<body>
+
+    <nav class="glass-nav">
+        <div class="logo">GuideMate Admin </div>
+        <div class="nav-links">
+            <span class="active">REAL-TIME MAP</span>
+            <span>FLEET STATUS</span>
+            <span>REVENUE</span>
+            <span class="logout-link" onclick="location.href='landingpage.html'">LOGOUT</span>
+        </div>
+        <div class="user-id"><i data-feather="shield"></i> Super_Admin: <b>Maria C.</b></div>
+    </nav>
+
+    <header class="dashboard-header">
+        <p>FEBRUARY 15, 2026</p>
+        <h1>Operational Overview: Cebu Island</h1>
+    </header>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <label>ACTIVE_TOURISTS</label>
+            <div class="value">1,482</div>
+        </div>
+        <div class="stat-card">
+            <label>GUIDES_ON_DUTY</label>
+            <div class="value blue-glow">84</div>
+        </div>
+        <div class="stat-card">
+            <label>DAILY_REVENUE</label>
+            <div class="value">₱142,500</div>
+        </div>
+    </div>
+
+    <main class="admin-grid">
+        <div class="panel table-panel">
+            <div class="panel-head">
+                <h3>Live Island Deployments</h3>
+                <i data-feather="refresh-cw"></i>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Guide</th>
+                        <th>Cebu Location</th>
+                        <th>Pax</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>John Lloyd Noya</b></td>
+                        <td>Kawasan Falls, Badian</td>
+                        <td>12</td>
+                        <td><span class="badge badge-tour">ON-TOUR</span></td>
+                    </tr>
+                    <tr>
+                        <td><b>Benjohn Paran</b></td>
+                        <td>Virgin Island, Bantayan</td>
+                        <td>6</td>
+                        <td><span class="badge badge-tour">ON-TOUR</span></td>
+                    </tr>
+                    <tr>
+                        <td><b>Jay-em Rosalita</b></td>
+                        <td>Oslob Whalesharks</td>
+                        <td>15</td>
+                        <td><span class="badge badge-wait">WAITING</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel feed-panel">
+            <h3>REGIONAL_INCIDENTS</h3>
+            <div class="feed-list">
+                <div class="feed-item alert">
+                    <span class="time">08:42</span>
+                    <p><b>OSLOB:</b> Signal Lost - Guide #44</p>
+                </div>
+                <div class="feed-item success">
+                    <span class="time">09:15</span>
+                    <p><b>BADIAN:</b> 12 Pax started Canyoneering</p>
+                </div>
+                <div class="feed-item">
+                    <span class="time">09:30</span>
+                    <p><b>BANTAYAN:</b> Weather Optimal</p>
+                </div>
+            </div>
+            <div class="command-actions">
+                <button class="cmd-btn btn-danger">BROADCAST EMERGENCY</button>
+                <button class="cmd-btn">GENERATE DAILY REPORT</button>
+            </div>
+        </div>
+    </main>
+
+    <script>feather.replace();</script>
+</body>
+</html>

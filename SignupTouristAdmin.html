@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuideMate | Explore the World</title>
+    <script src="https://kit.fontawesome.com/ed5caa5a8f.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="SignupTouristAdmin.css">
+</head>
+<body>
+
+    <div class="signup-wrapper">
+        <div class="main-card">
+            <div class="image-panel">
+                <div class="overlay"></div>
+                <div class="panel-content">
+                    <div class="brand-logo">
+                        <i class="fa-solid fa-earth-americas"></i>
+                        <span>GuideMate</span>
+                    </div>
+                    <div class="hero-text">
+                        <h1>Your next adventure starts here.</h1>
+                        <p>Join 50,000+ travelers discovering hidden gems across the globe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-panel">
+                <div class="form-header">
+                    <h2>Create Account</h2>
+                    <p>Enter your details to become a GuideMate explorer.</p>
+                </div>
+
+                <div class="role-selector" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button type="button" class="role-btn active" data-role="tourist" style="flex: 1; padding: 10px; cursor: pointer; border: 1px solid #0d9488; border-radius: 8px;">Tourist</button>
+                    <button type="button" class="role-btn" data-role="guide" style="flex: 1; padding: 10px; cursor: pointer; border: 1px solid #ccc; border-radius: 8px;">Guide</button>
+                </div>
+
+                <form id="signup-form" action="SignupTouristAdmin.php" method="POST">
+                    <input type="hidden" name="role" id="user-role" value="tourist">
+                    
+                    <div class="form-grid">
+                        <div class="input-box">
+                            <label><i class="fa-regular fa-user"></i> First Name</label>
+                            <input type="text" name="first_name" required>
+                        </div>
+
+                        <div class="input-box">
+                            <label>Last Name</label>
+                            <input type="text" name="last_name" required>
+                        </div>
+
+                        <div class="input-box full-width">
+                            <label><i class="fa-regular fa-envelope"></i> Email Address</label>
+                            <input type="email" name="email" id="email" required>
+                        </div>
+
+                        <div class="input-box">
+                            <label><i class="fa-solid fa-phone"></i> Contact</label>
+                            <input type="text" name="contact" placeholder="+63" required>
+                        </div>
+
+                        <div class="input-box">
+                            <label><i class="fa-regular fa-id-badge"></i> Username</label>
+                            <input type="text" name="username" required>
+                        </div>
+
+                        <div class="input-box">
+                            <label><i class="fa-solid fa-lock"></i> Password</label>
+                            <input type="password" name="password" id="password" required>
+                        </div>
+
+                        <div class="input-box">
+                            <label>Confirm Password</label>
+                            <input type="password" name="confirm_password" id="confirm_password" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="primary-btn">Begin Adventure</button>
+                    
+                    <p class="switch-link">
+                        Already have an account? <a href="signinTouristAdmin.html">Sign in here</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="SignupTouristAdmin.js"></script>
+</body>
+</html>

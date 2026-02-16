@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guidemate</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">Guidemate</div>
+    <nav>
+        <a href="#">Discover</a>
+        <a href="#">Trips</a>
+        <a href="#">Review</a>
+    </nav>
+    <div class="nav-right">
+       <a href="signinTouristAdmin.html" id="loginLink">
+    <button class="login-btn" id="loginBtn">Login</button>
+</a>
+       <span class="logout-link" id="logoutBtn" style="display:none;" onclick="handleLogout()">LOGOUT</span>
+    </div>
+</header>
+
+
+<section class="hero">
+    <h1>Where to?</h1>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-type="locations">Locations</button>
+        <button class="tab-btn" data-type="guides">Tour Guides</button>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search locations...">
+        <button>Search</button>
+    </div>
+</section>
+
+<section class="explore">
+    <h2 id="sectionTitle">Popular Locations</h2>
+    <div class="card-container" id="cardsContainer"></div>
+</section>
+
+
+
+<section class="reviews">
+    <h2>What Travelers Say</h2>
+    <div class="review-container" id="reviewContainer"></div>
+</section>
+
+
+<script src="script.js">
+</script>
+</body>
+</html>

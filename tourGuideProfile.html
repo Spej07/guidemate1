@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Dashboard</title>
+    <link rel="stylesheet" href="tourGuideProfile.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-links">
+            <span>Hotels</span>
+            <span>Things to Do</span>
+            <span>Restaurants</span>
+            <span>Forums</span>
+        </div>
+    </nav>
+
+    <div class="cover-photo">
+        <button class="add-cover-btn">📷 Add cover photo</button>
+    </div>
+
+    <div class="container">
+        <header class="profile-card">
+            <div class="profile-main">
+                <div class="avatar">
+                    <img src="https://via.placeholder.com/120" alt="Avatar">
+                </div>
+                <div class="profile-info">
+                    <h1>Justine Ian V</h1>
+                    <p class="handle">@justineianv</p>
+                    <div class="stats">
+                        <strong>Contributions</strong>
+                        <span>0</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn-outline">Edit profile</button>
+                    <button class="btn-icon">⚙️</button>
+                </div>
+            </div>
+            
+            <nav class="profile-tabs">
+                <span class="active">Activity feed</span>
+                <span>Trips</span>
+                <span>Photos</span>
+                <span>Reviews</span>
+                <span>Forums</span>
+                <span>Travel map</span>
+            </nav>
+        </header>
+
+        <div class="content-layout">
+            <aside class="sidebar">
+                <div class="widget-card">
+                    <h3>Your Achievements</h3>
+                    <p class="subtitle">Start sharing to unlock</p>
+                    <div class="achievement-item locked">
+                        <div class="icon">🔒</div>
+                        <div>
+                            <strong>Write your first review</strong>
+                            <p>Unlock review milestones</p>
+                        </div>
+                    </div>
+                    <div class="achievement-item locked">
+                        <div class="icon">🔒</div>
+                        <div>
+                            <strong>Upload your first photo</strong>
+                            <p>Unlock photo milestones</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="feed">
+                <div class="empty-state-card">
+                    <h2>Fill Out Your Profile</h2>
+                    <p>Add photos and info to your profile so people can find you easily and get to know you better!</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+</body>
+</html>
