@@ -1,15 +1,31 @@
+/* ==========================================================================
+   1. GLOBAL STYLES
+   ========================================================================== */
 body {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
 }
 
-/* NAVBAR */
+a { 
+    text-decoration: none; 
+    color: inherit; 
+}
+
+/* ==========================================================================
+   2. NAVIGATION BAR
+   ========================================================================== */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 60px;
     border-bottom: 1px solid #eee;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .logo {
@@ -17,194 +33,51 @@ body {
     font-size: 22px;
 }
 
+/* ==========================================================================
+   2. SHARED NAVBAR
+   ========================================================================== */
+.navbar {
+    display: flex;
+    justify-content: space-between; /* Distributes Logo, Nav, and Profile */
+    align-items: center;
+    padding: 15px 60px;
+    border-bottom: 1px solid #eee;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* 1. Left side (Logo) */
+.logo {
+    font-weight: bold;
+    font-size: 22px;
+    flex: 1; /* Takes up equal space on the left */
+}
+
+/* 2. Center side (Links) */
 .navbar nav {
     display: flex;
-    gap: 20px;
+    gap: 30px;
+    flex: 2; /* Takes up more space to stay centered */
+    justify-content: center; /* Centers the links horizontally */
 }
 
 .navbar nav a {
-    margin: 0 15px;
-    text-decoration: none;
-    color: black;
+    font-weight: 500;
+    transition: color 0.3s;
+    white-space: nowrap;
 }
 
-/* LOGIN BUTTON */
-.nav-right .login-btn {
-    background: #00aa6c;
-    color: white;
-    padding: 8px 18px;
-    border-radius: 20px;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    font-size: 14px;
-    line-height: 1.5;
-    display: inline-block;
-    height: auto;
-}
-
-.nav-right .login-btn:hover {
-    background: #008855;
-}
-
-.nav-right .logout-link {
-    background: #00aa6c;
-    color: white;
-    padding: 8px 18px;
-    border-radius: 20px;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px;
-    line-height: 1.5;
-    height: auto;
-}
-
-.nav-right .logout-link:hover {
-    background: #008855;
-}
-
-.nav-right .logout-link.fade-out {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.nav-right .login-btn.fade-out {
-    opacity: 0;
-    visibility: hidden;
-}
-
-/* HERO */
-.hero {
-    text-align: center;
-    padding: 80px 20px;
-}
-
-.hero h1 {
-    font-size: 48px;
-    margin-bottom: 30px;
-}
-
-/* TABS */
-.tabs {
-    margin-bottom: 20px;
-}
-
-.tabs button {
-    padding: 10px 20px;
-    border: none;
-    background: #f2f2f2;
-    margin: 0 5px;
-    border-radius: 25px;
-    cursor: pointer;
-}
-
-.tabs .active {
-    background: black;
-    color: white;
-}
-
-/* SEARCH */
-.search-bar {
+/* 3. Right side (Profile) */
+.nav-right {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    justify-content: flex-end; /* Pushes content to the far right */
+    flex: 1; /* Takes up equal space on the right */
 }
 
-.search-bar input {
-    width: 500px;
-    padding: 15px;
-    border-radius: 30px 0 0 30px;
-    border: 1px solid #ccc;
-}
-
-.search-bar button {
-    padding: 15px 30px;
-    border: none;
-    border-radius: 0 30px 30px 0;
-    background: #00aa6c;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* CARDS */
-.explore {
-    padding: 60px;
-}
-
-.explore h2 {
-    text-align: center;
-}
-
-.card-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.card {
-    position: relative;
-    border-radius: 15px;
-    overflow: hidden;
-    cursor: pointer;
-}
-
-.card img {
-    width: 100%;
-    height: 280px;
-    object-fit: cover;
-    transition: 0.3s;
-}
-
-.card:hover img {
-    transform: scale(1.1);
-}
-
-.card h3 {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    color: white;
-}
-
-/* REVIEWS SECTION */
-.reviews {
-    padding: 60px;
-    background: #f8f8f8;
-}
-
-.reviews h2 {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.review-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.review-card {
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.05);
-}
-
-.review-card h4 {
-    margin: 0 0 10px 0;
-}
-
-.stars {
-    color: #00aa6c;
-    margin-bottom: 10px;
-}
-
-.logout-link {
+.login-btn {
     background: #00aa6c;
     color: white;
     padding: 8px 18px;
@@ -213,7 +86,333 @@ body {
     cursor: pointer;
     font-weight: bold;
     transition: background 0.3s;
-    text-decoration: none;
-    display: inline-block;
 }
 
+.login-btn:hover { 
+    background: #008855; 
+}
+
+.profile-container { 
+    position: relative; 
+    display: flex;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.profile-tabs {
+    display: flex;
+    gap: 40px; /* Spacing for Activity feed, Trips, Photos, Reviews */
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+}
+
+.profile-tabs a {
+    padding: 15px 5px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+/* Blue lighting effect for profile tabs */
+.profile-tabs a:hover {
+    color: #007bff; /* Bright Blue */
+}
+
+/* Keep your active tab green or change to blue if preferred */
+.profile-tabs a.active {
+    color: #00aa6c;
+    border-bottom-color: #00aa6c;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    display: none; /* Controlled by JS .show class */
+    position: absolute;
+    right: 0;
+    top: 100%; 
+    margin-top: 10px;
+    background: white;
+    min-width: 200px;
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    padding: 10px 0;
+    z-index: 2000;
+}
+
+.dropdown-menu.show { 
+    display: block; 
+}
+
+.dropdown-menu a, .sign-out-link {
+    padding: 12px 20px;
+    display: block;
+    font-size: 15px;
+    color: #333;
+    cursor: pointer;
+}
+
+.dropdown-menu a:hover, .sign-out-link:hover { 
+    background: #f5f5f5; 
+}
+
+.dropdown-menu hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 5px 0;
+}
+
+/* ==========================================================================
+   3. LANDING PAGE COMPONENTS (Hero, Search, Cards)
+   ========================================================================== */
+.hero {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.hero h1 { 
+    font-size: 48px; 
+    margin-bottom: 30px; 
+}
+
+.tabs button {
+    padding: 10px 25px;
+    border: none;
+    background: #eee;
+    margin: 0 5px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.tabs button.active { 
+    background: black; 
+    color: white; 
+}
+
+.search-bar { 
+    margin-top: 30px; 
+}
+
+.search-bar input {
+    width: 400px;
+    padding: 15px 25px;
+    border-radius: 30px 0 0 30px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.search-bar button {
+    padding: 15px 30px;
+    border-radius: 0 30px 30px 0;
+    border: none;
+    background: #00aa6c;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Explore Grid */
+.explore { 
+    padding: 40px 60px; 
+}
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card img { 
+    width: 100%; 
+    height: 250px; 
+    object-fit: cover; 
+    transition: 0.3s; 
+}
+
+.card:hover img { 
+    transform: scale(1.05); 
+}
+
+.card h3 { 
+    padding: 15px; 
+    margin: 0; 
+    font-size: 18px; 
+}
+
+/* ==========================================================================
+   4. REVIEWS SECTION (New Cards Style)
+   ========================================================================== */
+/* ==========================================================================
+   4. REVIEWS SECTION (Centered Style)
+   ========================================================================== */
+.reviews {
+    padding: 40px 60px;
+    background-color: #f9f9f9;
+    text-align: center; /* Centers the "What Travelers Say" heading */
+}
+
+.reviews h2 {
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+
+.review-grid {
+    display: grid;
+    /* This ensures cards are at least 300px but expand to fill space */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    justify-content: center; /* Centers the grid items horizontally */
+    max-width: 1200px;
+    margin: 0 auto; /* Centers the entire grid container */
+}
+
+.review-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    
+    /* Centering content inside the card */
+    display: flex;
+    flex-direction: column;
+    align-items: center;    /* Centers items horizontally in flex */
+    text-align: center;     /* Centers the text lines */
+}
+
+.review-card:hover {
+    transform: translateY(-5px);
+}
+
+.review-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.stars {
+    color: #00aa6c; 
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.review-card p {
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ==========================================================================
+   5. PROFILE PAGE SPECIFIC STYLES
+   ========================================================================== */
+.profile-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-bottom: 50px;
+}
+
+.cover-section {
+    height: 250px;
+    background: linear-gradient(135deg, #00aa6c 0%, #003d29 100%);
+    position: relative;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+.add-cover-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.user-header-card {
+    background: white;
+    margin: -60px 20px 20px 20px;
+    padding: 25px 30px 0 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.user-info-flex {
+    display: flex;
+    align-items: flex-end;
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+.large-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid white;
+    object-fit: cover;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.user-details { flex-grow: 1; padding-bottom: 10px; }
+.user-details h1 { margin: 0; font-size: 32px; }
+.handle { color: #777; font-size: 1.1rem; margin: 5px 0; }
+
+.header-actions { display: flex; gap: 10px; align-self: center; }
+
+.edit-btn {
+    background: #000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sidebar-achievements {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.achievement-item .icon {
+    font-size: 20px;
+    background: #f0f0f0;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.empty-state-card {
+    background: white;
+    padding: 60px;
+    text-align: center;
+    border-radius: 15px;
+    border: 2px dashed #ddd;
+}

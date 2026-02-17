@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile - Guidemate</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="profile-page">
+<header class="navbar">
+    <div class="logo">
+        <a href="landingpage.html">Guidemate</a>
+    </div>
+    <div class="nav-right">
+        <div class="profile-container">
+            <img src="photos/vince.jfif" alt="Profile" class="profile-pic" id="profileDropdownBtn">
+            
+            <div class="dropdown-menu" id="dropdownMenu">
+                <a href="landingpage.html">Discover</a>
+                <a href="#">My trips</a>
+                <a href="#">Navigations</a>
+                <a href="#">Bookings</a>
+                <hr>
+                <a href="#" id="logoutBtn" class="sign-out-link">Sign out</a>
+            </div>
+        </div>
+    </div>
+</header> 
+
+<main class="profile-main">
+    <main class="profile-main">
+        <div class="cover-section">
+            <button class="add-cover-btn">📷 Add cover photo</button>
+        </div>
+
+      <div class="user-header-card">
+    <div class="user-info-flex">
+        <img src="photos/vince.jfif" alt="User" class="large-avatar">
+        <div class="user-details">
+            <h1 id="profileName">Loading...</h1> 
+            <p class="handle" id="profileHandle">@username</p> 
+            </div>
+        <div class="header-actions">
+            <button class="edit-btn">Edit profile</button>
+            <button class="settings-btn">⚙️</button>
+        </div>
+    </div>
+    
+    <nav class="profile-tabs">
+        <a href="#" class="active">Activity feed</a>
+        <a href="#">Trips</a>
+        <a href="#">Photos</a>
+        <a href="#">Reviews</a>
+    </nav>
+</div>
+
+
+<script src="profile-script.js"></script>
+            </div>
+            
+
+        <div class="profile-content-grid">
+            <aside class="sidebar-achievements">
+                <h3>Your Achievements</h3>
+                <p>Start sharing to unlock</p>
+                <div class="achievement-item locked">
+                    <div class="icon">🔒</div>
+                    <div>
+                        <strong>Write your first review</strong>
+                        <p>Unlock review milestones</p>
+                    </div>
+                </div>
+                <div class="achievement-item locked">
+                    <div class="icon">🔒</div>
+                    <div>
+                        <strong>Upload your first photo</strong>
+                        <p>Unlock photo milestones</p>
+                    </div>
+                </div>
+                <button class="view-all-btn">View all</button>
+            </aside>
+
+            <section class="main-feed">
+                <div class="empty-state-card">
+                    <h2>Create your first Trip!</h2>
+                    <p>Build wish lists, share recommendations, and organize travel plans with Trips! <a href="#">Create Trip</a></p>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

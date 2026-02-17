@@ -15,11 +15,24 @@
         <a href="#">Review</a>
     </nav>
     <div class="nav-right">
-       <a href="signinTouristAdmin.html" id="loginLink">
-    <button class="login-btn" id="loginBtn">Login</button>
-</a>
-       <span class="logout-link" id="logoutBtn" style="display:none;" onclick="handleLogout()">LOGOUT</span>
+    <a href="signinTouristAdmin.html" id="loginLink">
+        <button class="login-btn" id="loginBtn">Login</button>
+    </a>
+
+    <div class="profile-container" id="profileContainer" style="display:none;">
+        <img src="photos/vince.jfif" alt="Profile" class="profile-pic" id="profilePic">
+        <div class="dropdown-menu" id="dropdownMenu">
+            <div class="menu-arrow"></div>
+            <a href="#">My trips</a>
+            <a href="profiletourist.html">Profile</a>
+            <a href="#">Bookings</a>
+            <a href="#">Messages</a>
+            <a href="#">Account info</a>
+            <hr>
+            <span class="sign-out-link" onclick="handleLogout()">Sign out</span>
+        </div>
     </div>
+</div>
 </header>
 
 
@@ -46,7 +59,13 @@
 
 <section class="reviews">
     <h2>What Travelers Say</h2>
-    <div class="review-container" id="reviewContainer"></div>
+    <div class="review-grid" id="reviewContainer">
+        <div class="review-card">
+            <h3>Mark D.</h3>
+            <div class="stars">★★★★★</div>
+            <p>Amazing experience!</p>
+        </div>
+        </div>
 </section>
 
 
