@@ -17,7 +17,6 @@
             <div class="dropdown-menu" id="dropdownMenu">
                 <a href="landingpage.html">Discover</a>
                 <a href="#">My trips</a>
-                <a href="#">Navigations</a>
                 <a href="#">Bookings</a>
                 <hr>
                 <a href="#" id="logoutBtn" class="sign-out-link">Sign out</a>
@@ -35,14 +34,15 @@
       <div class="user-header-card">
     <div class="user-info-flex">
         <img src="photos/vince.jfif" alt="User" class="large-avatar">
-        <div class="user-details">
-            <h1 id="profileName">Loading...</h1> 
-            <p class="handle" id="profileHandle">@username</p> 
-            </div>
-        <div class="header-actions">
-            <button class="edit-btn">Edit profile</button>
-            <button class="settings-btn">⚙️</button>
-        </div>
+       <div class="user-details">
+    <h1 id="profileName">Loading...</h1> 
+    <p class="handle" id="profileHandle">@username</p> 
+</div>
+<div class="header-actions">
+    <input type="file" id="imageInput" style="display: none;" accept="image/*">
+    <button class="edit-btn" id="editProfileBtn">Edit profile</button>
+    <button class="settings-btn">⚙️</button>
+</div>
     </div>
     
     <nav class="profile-tabs">
