@@ -20,7 +20,7 @@
             <nav class="side-nav">
                 <a href="landingpage.html"><i class='bx bx-home-alt'></i> Discover</a>
                 <a href="#" class="active"><i class='bx bx-map-alt'></i> Navigations</a>
-                <a href="#"><i class='bx bx-Briefcase'></i> My Trips</a>
+                <a href="mytrips.html"><i class='bx bx-briefcase'></i> My Trips</a>
                 <a href="profiletourist.html"><i class='bx bx-user'></i> Profile</a>
             </nav>
             <div class="sidebar-footer">
@@ -30,10 +30,15 @@
 
         <main class="nav-content">
             <header class="top-bar">
-                <div class="search-box">
-                    <i class='bx bx-search'></i>
-                    <input type="text" placeholder="Search Cebu spots...">
+                <div class="search-box-container">
+                    <div class="search-box">
+                        <i class='bx bx-search'></i>
+                        <input type="text" id="searchInput" placeholder="Search Cebu spots...">
+                        <button id="searchBtn" class="btn-search-submit">Search</button>
+                    </div>
+                    <div id="searchHistory" class="search-history-dropdown" style="display: none;"></div>
                 </div>
+
                 <div class="user-status">
                     <span id="navProfileName">Guest Traveler</span>
                     <img src="photos/vince.jfif" alt="User" class="nav-avatar">
@@ -41,10 +46,9 @@
             </header>
 
             <section class="map-view-section">
-                <div id="map" style="height: 500px; border-radius: 15px; z-index: 1;"></div>
-                
-                <div class="map-controls-overlay" style="margin-top: 10px;">
-                    <button class="btn-blue" onclick="getLocation()">📍 My Current Location</button>
+                <div id="map"></div>
+                <div class="map-controls-overlay" style="margin-top: 15px;">
+                    <button class="chip" onclick="getLocation()" style="background: #2d76f9; color: white; border: none;">📍 My Current Location</button>
                 </div>
             </section>
 
