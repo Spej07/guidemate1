@@ -2,7 +2,7 @@
 $host = 'localhost';
 $user = 'root'; // Default XAMPP user
 $pass = '';     // Default XAMPP password
-$db   = 'guidemate'; // Your database name
+$db   = 'guidemate-3'; // Your database name
 
 $mysqli = new mysqli($host, $user, $pass, $db);
 

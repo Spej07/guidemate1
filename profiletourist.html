@@ -53,8 +53,6 @@
     </nav>
 </div>
 
-
-<script src="profile-script.js"></script>
             </div>
             
 
@@ -80,12 +78,71 @@
             </aside>
 
             <section class="main-feed">
-                <div class="empty-state-card">
-                    <h2>Create your first Trip!</h2>
-                    <p>Build wish lists, share recommendations, and organize travel plans with Trips! <a href="#">Create Trip</a></p>
+                <div id="reviewsContent" style="display:none;">
+                    <div class="review-submission-section">
+                        <h2>Write a Review</h2>
+                        <form id="profileReviewForm" class="profile-review-form">
+                            <div class="form-group">
+                                <label for="reviewType">Review Type</label>
+                                <select id="reviewType" required>
+                                    <option value="">Select what you want to review</option>
+                                    <option value="location">Location</option>
+                                    <option value="guide">Tour Guide</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="reviewSubject">Location / Guide Name</label>
+                                <select id="reviewSubject" required>
+                                    <option value="">Select a location or guide</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tourRating">Rating</label>
+                                <div class="star-rating">
+                                    <input type="radio" name="tourRating" value="1" id="tourStar1">
+                                    <label for="tourStar1">★</label>
+                                    <input type="radio" name="tourRating" value="2" id="tourStar2">
+                                    <label for="tourStar2">★★</label>
+                                    <input type="radio" name="tourRating" value="3" id="tourStar3">
+                                    <label for="tourStar3">★★★</label>
+                                    <input type="radio" name="tourRating" value="4" id="tourStar4">
+                                    <label for="tourStar4">★★★★</label>
+                                    <input type="radio" name="tourRating" value="5" id="tourStar5">
+                                    <label for="tourStar5">★★★★★</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tourReviewComment">Your Review</label>
+                                <textarea id="tourReviewComment" placeholder="Share your experience..." rows="5" required></textarea>
+                            </div>
+
+                            <button type="submit" class="profile-submit-btn">Submit Review</button>
+                            <div id="profileReviewMessage"></div>
+                        </form>
+                    </div>
+
+                    <div class="your-reviews-section">
+                        <h2>Your Reviews</h2>
+                        <div id="yourReviewsList" class="reviews-list">
+                            <p>You haven't submitted any reviews yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="activityContent">
+                    <div class="empty-state-card">
+                        <h2>Create your first Trip!</h2>
+                        <p>Build wish lists, share recommendations, and organize travel plans with Trips! <a href="#">Create Trip</a></p>
+                    </div>
                 </div>
             </section>
         </div>
     </main>
+
+<script src="script.js"></script>
+<script src="profile-script.js"></script>
 </body>
 </html>

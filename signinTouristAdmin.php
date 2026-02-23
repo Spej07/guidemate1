@@ -18,11 +18,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $username;
 
+            // Get tourist_id if user is a tourist
+            $touristId = '';
+            if ($user['role'] === 'tourist') {
+                $touristStmt = $mysqli->prepare("SELECT tourist_id FROM tourists WHERE user_id = ?");
+                $touristStmt->bind_param("i", $user['id']);
+                $touristStmt->execute();
+                $touristResult = $touristStmt->get_result();
+                if ($touristRow = $touristResult->fetch_assoc()) {
+                    $touristId = $touristRow['tourist_id'];
+                }
+                $touristStmt->close();
+            }
+
             // Redirect based on role with localStorage set
             if ($user['role'] === 'admin') {
-                echo "<script>localStorage.setItem('userLoggedIn', 'true'); window.location.href = 'admin_dashboard.php';</script>";
+                echo "<script>
+                    localStorage.setItem('userLoggedIn', 'true');
+                    localStorage.setItem('userId', '" . $user['id'] . "');
+                    window.location.href = 'admin_dashboard.php';
+                </script>";
             } else {
-                echo "<script>localStorage.setItem('userLoggedIn', 'true'); window.location.href = 'landingpage.html';</script>";
+                echo "<script>
+                    localStorage.setItem('userLoggedIn', 'true');
+                    localStorage.setItem('userId', '" . $user['id'] . "');
+                    localStorage.setItem('touristId', '" . $touristId . "');
+                    window.location.href = 'landingpage.html';
+                </script>";
             }
             exit();
         } else {
