@@ -6,37 +6,42 @@
     <title>Guide Spotlight | Cebu AdventureSync</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="tourGuideDashboard.css">
 </head>
 <body>
 
+<header class="navbar">
+    <div class="logo" style="font-weight: 800; font-size: 1.3rem; letter-spacing: 1px;"> GuideMate🌴</div>
     <nav>
-        <div class="logo" style="font-weight: 800; font-size: 1.3rem; letter-spacing: 1px;">GuideMate 🌴</div>
-        <div class="nav-links">
-            <span>DASHBOARD</span>
-            <span>MY TOURS</span>
-            <span>GUESTS</span>
-            <span class="logout-btn" onclick="handleLogout()">
-                <i data-feather="log-out" style="width: 14px;"></i> LOGOUT
-            </span>
-        </div>
-        <div style="font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 10px; display: flex; align-items: center;">
+        <a href="#" style="color: var(--accent);">DASHBOARD</a>
+        <a href="#">MY TOURS</a>
+        <a href="#">GUESTS</a>
+    </nav>
+    <div class="nav-right">
+        <div style="font-size: 0.9rem; background: #f0f0f0; padding: 8px 15px; border-radius: 10px; display: flex; align-items: center;">
             <img src="photos/vince.jfif" alt="Guide Profile" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
             Guide: <b>John Lloyd Noya</b>
         </div>
-    </nav>
+        <span class="logout-btn" onclick="handleLogout()" style="margin-left: 15px; cursor: pointer;">
+            <i data-feather="log-out" style="width: 14px;"></i> LOGOUT
+        </span>
+    </div>
+</header>
 
-    <header class="hero">
-        <span style="font-weight: 600; letter-spacing: 3px; color: #51ff9a; text-transform: uppercase;">Current Assignment</span>
-        <h1>CANYONEERING IN BADIAN</h1>
-        <p>Your group of 12 travelers is ready. Ensure all safety gear is double-checked before the first cliff jump at 9:30 AM. Stay hydrated and lead the way!</p>
-        <div>
-            <button class="btn btn-primary" style="background: white; color: var(--accent);">ACTIVATE GPS</button>
-            <button class="btn btn-primary" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px);">GUEST MANIFEST</button>
-        </div>
-    </header>
+<section class="hero">
+    <span style="font-weight: 600; letter-spacing: 3px; color: #51ff9a; text-transform: uppercase;">Current Assignment</span>
+    <h1>CANYONEERING IN BADIAN</h1>
+    <p>Your group of 12 travelers is ready. Ensure all safety gear is double-checked before the first cliff jump at 9:30 AM. Stay hydrated and lead the way!</p>
+    <div>
+        <button class="btn btn-primary" style="background: white; color: var(--accent);">ACTIVATE GPS</button>
+        <button class="btn btn-primary" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px);">GUEST MANIFEST</button>
+    </div>
+</section>
 
-    <div class="container">
-        
+<section class="explore">
+    <h2>Dashboard Overview</h2>
+    <div class="card-container">
         <div class="glass-card">
             <div class="icon-box"><i data-feather="calendar"></i></div>
             <h3 style="margin-top: 0;">My Schedule</h3>
@@ -44,15 +49,12 @@
             <button class="btn btn-outline" style="width: 100%;">VIEW ALL</button>
         </div>
 
-        <div class="glass-card">
-            <div class="icon-box"><i data-feather="dollar-sign"></i></div>
-            <h3 style="margin-top: 0;">Incentives</h3>
-            <p>Current earnings: <b style="color: var(--accent); font-size: 1.2rem;">₱4,500</b> from tips and bonuses this week.</p>
-            <button class="btn btn-outline" style="width: 100%;">PAYOUT INFO</button>
-        </div>
+    </div>
+</section>
 
-        <h2 class="section-title">Detailed Daily Tasks</h2>
-
+<section class="reviews">
+    <h2>Detailed Daily Tasks</h2>
+    <div class="review-grid">
         <div class="glass-card task-card">
             <div class="task-header">
                 <span style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">08:00 AM</span>
@@ -73,19 +75,19 @@
             <p>Direct priority line to Tourism Admin and local emergency responders for Badian district.</p>
             <button class="btn btn-danger">INITIATE EMERGENCY CALL</button>
         </div>
-
     </div>
+</section>
 
-    <script>
-        feather.replace();
+<script>
+    feather.replace();
 
-        function handleLogout() {
-            // Confirm with the user before logging out
-            if (confirm("Are you sure you want to log out, John Lloyd?")) {
-                // Redirect back to login page
-                window.location.href = "index.html"; 
-            }
+    function handleLogout() {
+        // Confirm with the user before logging out
+        if (confirm("Are you sure you want to log out, John Lloyd?")) {
+            // Redirect back to login page
+            window.location.href = "signinTouristAdmin.html"; 
         }
-    </script>
+    }
+</script>
 </body>
 </html>

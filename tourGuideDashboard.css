@@ -1,7 +1,7 @@
  :root {
-            --accent: #27ae60;
+            --accent: #0d9488; /* Teal accent like landing page */
             --glass: rgba(255, 255, 255, 0.9);
-            --dark-glass: rgba(0, 0, 0, 0.7);
+            --dark-glass: rgba(255, 255, 255, 0.9);
             --danger: #e74c3c;
         }
 
@@ -9,18 +9,13 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
-                        url('https://images.unsplash.com/photo-1542614391-42cb50bc100f?auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center;
-            color: white;
+            background: #f9f9f9; /* Light background like landing page */
+            color: #333; /* Dark text */
         }
 
         /* --- Navigation --- */
         nav {
-            background: var(--dark-glass);
-            backdrop-filter: blur(15px);
+            background: white;
             padding: 15px 50px;
             display: flex;
             justify-content: space-between;
@@ -28,7 +23,7 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid #eee;
         }
 
         .nav-links {

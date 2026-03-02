@@ -12,6 +12,7 @@
 
     <div class="signup-wrapper">
         <div class="main-card">
+            
             <div class="image-panel">
                 <div class="overlay"></div>
                 <div class="panel-content">
@@ -32,9 +33,13 @@
                     <p>Enter your details to become a GuideMate explorer.</p>
                 </div>
 
-                <div class="role-selector" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button type="button" class="role-btn active" data-role="tourist" style="flex: 1; padding: 10px; cursor: pointer; border: 1px solid #0d9488; border-radius: 8px;">Tourist</button>
-                    <button type="button" class="role-btn" data-role="guide" style="flex: 1; padding: 10px; cursor: pointer; border: 1px solid #ccc; border-radius: 8px;">Guide</button>
+                <div class="role-selector" style="display: flex; gap: 10px; margin-bottom: 25px;">
+                    <button type="button" class="role-btn active" data-role="tourist" id="btn-tourist">
+                        <i class="fa-solid fa-suitcase-rolling"></i> Tourist
+                    </button>
+                    <button type="button" class="role-btn" data-role="guide" id="btn-guide">
+                        <i class="fa-solid fa-map-location-dot"></i> Tour Guide
+                    </button>
                 </div>
 
                 <form id="signup-form" action="SignupTouristAdmin.php" method="POST">
@@ -42,38 +47,38 @@
                     
                     <div class="form-grid">
                         <div class="input-box">
-                            <label><i class="fa-regular fa-user"></i> First Name</label>
-                            <input type="text" name="first_name" required>
+                            <label for="first_name"><i class="fa-regular fa-user"></i> First Name</label>
+                            <input type="text" name="first_name" id="first_name" placeholder="John" required>
                         </div>
 
                         <div class="input-box">
-                            <label>Last Name</label>
-                            <input type="text" name="last_name" required>
+                            <label for="last_name">Last Name</label>
+                            <input type="text" name="last_name" id="last_name" placeholder="Doe" required>
                         </div>
 
                         <div class="input-box full-width">
-                            <label><i class="fa-regular fa-envelope"></i> Email Address</label>
-                            <input type="email" name="email" id="email" required>
+                            <label for="email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                            <input type="email" name="email" id="email" placeholder="name@example.com" required>
                         </div>
 
                         <div class="input-box">
-                            <label><i class="fa-solid fa-phone"></i> Contact</label>
-                            <input type="text" name="contact" placeholder="+63" required>
+                            <label for="contact"><i class="fa-solid fa-phone"></i> Contact</label>
+                            <input type="text" name="contact" id="contact" placeholder="+63 900 000 0000" required>
                         </div>
 
                         <div class="input-box">
-                            <label><i class="fa-regular fa-id-badge"></i> Username</label>
-                            <input type="text" name="username" required>
+                            <label for="username"><i class="fa-regular fa-id-badge"></i> Username</label>
+                            <input type="text" name="username" id="username" placeholder="johndoe123" required>
                         </div>
 
                         <div class="input-box">
-                            <label><i class="fa-solid fa-lock"></i> Password</label>
-                            <input type="password" name="password" id="password" required>
+                            <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+                            <input type="password" name="password" id="password" placeholder="••••••••" required>
                         </div>
 
                         <div class="input-box">
-                            <label>Confirm Password</label>
-                            <input type="password" name="confirm_password" id="confirm_password" required>
+                            <label for="confirm_password">Confirm Password</label>
+                            <input type="password" name="confirm_password" id="confirm_password" placeholder="••••••••" required>
                         </div>
                     </div>
                     

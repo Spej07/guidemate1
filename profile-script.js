@@ -1,66 +1,71 @@
 document.addEventListener("DOMContentLoaded", () => {
-    let firstName = localStorage.getItem("firstName") || "Guest";
-    let lastName = localStorage.getItem("lastName") || "Traveler";
+    // Standardize naming: Use 'fullName' to match landing page sync
+    let fullName = localStorage.getItem("fullName") || "Guest Traveler";
     
+    // Selectors
     const profileName = document.getElementById("profileName");
     const profileHandle = document.getElementById("profileHandle");
-    const profilePics = document.querySelectorAll(".profile-pic, .large-avatar"); // Targets both small and large icons
-
-    function updateDisplay(fName, lName) {
-        profileName.textContent = `${fName} ${lName}`;
-        profileHandle.textContent = `@${fName.toLowerCase()}`;
-    }
-
-    updateDisplay(firstName, lastName);
-
-    
-    const savedImage = localStorage.getItem("profileImage");
-    if (savedImage) {
-        profilePics.forEach(img => img.src = savedImage);
-    }
-
+    const profilePics = document.querySelectorAll(".profile-pic, .large-avatar, #profilePic, #profileDropdownBtn");
     const editBtn = document.getElementById("editProfileBtn");
     const imageInput = document.getElementById("imageInput");
 
+    function updateDisplay(name) {
+        if (profileName) profileName.textContent = name;
+        if (profileHandle) {
+            const handle = name.split(" ")[0].toLowerCase();
+            profileHandle.textContent = `@${handle}`;
+        }
+    }
+
+    function syncImages() {
+        const savedImage = localStorage.getItem("profileImage");
+        if (savedImage && profilePics) {
+            profilePics.forEach(img => img.src = savedImage);
+        }
+    }
+
+    // Run initial sync
+    updateDisplay(fullName);
+    syncImages();
+
+    // EDIT PROFILE LOGIC
     if (editBtn) {
         editBtn.addEventListener("click", () => {
+            const currentName = profileName.textContent;
+            const newName = prompt("Enter your new full name:", currentName);
             
-            const newFullName = prompt("Enter your new full name (First Last):", `${firstName} ${lastName}`);
-            
-            if (newFullName) {
-                const names = newFullName.split(" ");
-                const newFirst = names[0];
-                const newLast = names.slice(1).join(" ") || ""; // Handles cases with no last name
+            if (newName && newName.trim() !== "") {
+                localStorage.setItem("fullName", newName);
+                updateDisplay(newName);
+                
+                // Call landing page sync if available
+                if (typeof syncProfileData === "function") syncProfileData();
 
-                localStorage.setItem("firstName", newFirst);
-                localStorage.setItem("lastName", newLast);
-                updateDisplay(newFirst, newLast);
-            }
-
-            
-            if(confirm("Would you also like to change your profile picture?")) {
-                imageInput.click();
+                if(confirm("Would you also like to change your profile picture?")) {
+                    imageInput.click();
+                }
             }
         });
     }
 
-    
-    imageInput.addEventListener("change", function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const result = e.target.result;
-                
-                localStorage.setItem("profileImage", result);
-                
-                profilePics.forEach(img => img.src = result);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+    // IMAGE UPLOAD LOGIC
+    if (imageInput) {
+        imageInput.addEventListener("change", function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const result = e.target.result;
+                    localStorage.setItem("profileImage", result);
+                    profilePics.forEach(img => img.src = result);
+                    if (typeof syncProfileData === "function") syncProfileData();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 
-    // Tab Switching
+    // TAB SWITCHING LOGIC
     const profileTabs = document.querySelectorAll('.profile-tabs a');
     const activityContent = document.getElementById('activityContent');
     const reviewsContent = document.getElementById('reviewsContent');
@@ -68,35 +73,31 @@ document.addEventListener("DOMContentLoaded", () => {
     profileTabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.preventDefault();
-            
-            // Remove active class from all tabs
             profileTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
-            // Show/hide content based on tab
             if (tab.textContent.trim() === 'Reviews') {
-                activityContent.style.display = 'none';
-                reviewsContent.style.display = 'block';
-                loadUserReviews();
+                if (activityContent) activityContent.style.display = 'none';
+                if (reviewsContent) {
+                    reviewsContent.style.display = 'block';
+                    loadUserReviews();
+                }
             } else {
-                activityContent.style.display = 'block';
-                reviewsContent.style.display = 'none';
+                if (activityContent) activityContent.style.display = 'block';
+                if (reviewsContent) reviewsContent.style.display = 'none';
             }
         });
     });
 
-    // Initialize review form
     initializeProfileReviewForm();
     initializeReviewTypeDropdown();
 });
 
-/**
- * Initialize review type dropdown to populate subject dropdown
- */
+// --- 6. REVIEW SYSTEM FUNCTIONS ---
+
 function initializeReviewTypeDropdown() {
     const reviewTypeSelect = document.getElementById('reviewType');
     const reviewSubjectSelect = document.getElementById('reviewSubject');
-
     if (!reviewTypeSelect || !reviewSubjectSelect) return;
 
     reviewTypeSelect.addEventListener('change', () => {
@@ -104,59 +105,40 @@ function initializeReviewTypeDropdown() {
     });
 }
 
-/**
- * Populate the subject dropdown based on review type
- */
 function populateSubjectDropdown(reviewType, selectElement) {
     selectElement.innerHTML = '<option value="">Select a location or guide</option>';
-
-    if (reviewType === 'location') {
-        locationData.forEach(location => {
-            const option = document.createElement('option');
-            option.value = location.name;
-            option.textContent = location.name;
-            selectElement.appendChild(option);
-        });
-    } else if (reviewType === 'guide') {
-        guideData.forEach(guide => {
-            const option = document.createElement('option');
-            option.value = guide.name;
-            option.textContent = guide.name;
-            selectElement.appendChild(option);
-        });
-    }
+    
+    // Uses global arrays defined in script.js
+    const dataPool = (reviewType === 'location') ? locationData : (reviewType === 'guide' ? guideData : []);
+    
+    dataPool.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.name;
+        option.textContent = item.name;
+        selectElement.appendChild(option);
+    });
 }
 
-/**
- * Initialize review form submission on profile page
- */
 function initializeProfileReviewForm() {
     const form = document.getElementById('profileReviewForm');
     const messageDiv = document.getElementById('profileReviewMessage');
-
     if (!form) return;
 
     form.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Get form data
         const reviewType = document.getElementById('reviewType').value;
         const reviewSubject = document.getElementById('reviewSubject').value.trim();
-        const rating = document.querySelector('input[name="tourRating"]:checked').value;
+        const rating = document.querySelector('input[name="tourRating"]:checked')?.value;
         const comment = document.getElementById('tourReviewComment').value.trim();
 
-        // Validate inputs
         if (!reviewType || !reviewSubject || !rating || !comment) {
             showProfileMessage('Please fill in all fields.', 'error', messageDiv);
             return;
         }
 
-        // Get user info
-        const userName = localStorage.getItem("firstName") || "Guest";
-        const lastName = localStorage.getItem("lastName") || "Traveler";
-        const fullName = `${userName} ${lastName}`;
+        const fullName = localStorage.getItem("fullName") || "Guest Traveler";
 
-        // Create review object
         const newReview = {
             id: Date.now(),
             name: fullName,
@@ -167,28 +149,14 @@ function initializeProfileReviewForm() {
             date: new Date().toLocaleDateString()
         };
 
-        // Get existing user reviews from localStorage or create new array
         let userReviews = JSON.parse(localStorage.getItem('userReviews')) || [];
         userReviews.push(newReview);
         localStorage.setItem('userReviews', JSON.stringify(userReviews));
 
-        // Also add to global reviews array
-        reviews.push({
-            name: fullName,
-            rating: parseInt(rating),
-            comment: comment
-        });
-
-        // Show success message
-        showProfileMessage('Thank you! Your review has been submitted successfully.', 'success', messageDiv);
-
-        // Reset form
+        showProfileMessage('Review submitted successfully!', 'success', messageDiv);
         form.reset();
-
-        // Reload reviews display
         loadUserReviews();
 
-        // Auto-hide message after 3 seconds
         setTimeout(() => {
             messageDiv.textContent = '';
             messageDiv.classList.remove('success', 'error');
@@ -196,13 +164,11 @@ function initializeProfileReviewForm() {
     });
 }
 
-/**
- * Load and display user's reviews
- */
 function loadUserReviews() {
     const reviewsList = document.getElementById('yourReviewsList');
-    const userReviews = JSON.parse(localStorage.getItem('userReviews')) || [];
+    if (!reviewsList) return;
 
+    const userReviews = JSON.parse(localStorage.getItem('userReviews')) || [];
     if (userReviews.length === 0) {
         reviewsList.innerHTML = '<p>You haven\'t submitted any reviews yet.</p>';
         return;
@@ -225,10 +191,8 @@ function loadUserReviews() {
     });
 }
 
-/**
- * Display success or error message on profile
- */
 function showProfileMessage(message, type, element) {
+    if (!element) return;
     element.textContent = message;
     element.classList.remove('success', 'error');
     element.classList.add(type);

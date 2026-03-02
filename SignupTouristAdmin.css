@@ -189,10 +189,10 @@ input:focus {
 .role-btn {
     flex: 1;
     padding: 12px;
-    border: 2px solid #eee;
-    background: #fff;
-    border-radius: 10px;
     cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -200,13 +200,16 @@ input:focus {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    color: #666;
 }
 
 .role-btn.active {
-    border-color: #007bff; /* Change to your primary brand color */
-    background: #f0f7ff;
-    color: #007bff;
+    border-color: #0d9488;
+    background-color: #f0fdfa;
+    color: #0d9488;
+}
+
+.role-btn i {
+    font-size: 1.1rem;
 }
 
 .role-btn:hover:not(.active) {

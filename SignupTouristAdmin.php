@@ -1,27 +1,39 @@
 <?php
 require_once 'dbconnect.php'; 
 
+/**
+ * Helper function to handle errors and rollback transactions
+ */
 function handleError($mysqli, $message) {
     if ($mysqli && $mysqli->connect_errno === 0) {
+        // Rollback any changes if a transaction was started
         $mysqli->rollback();
     }
+    // Alert the user and send them back to the form
     die("<script>alert('" . addslashes($message) . "'); window.history.back();</script>");
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 1. Collect and sanitize inputs
     $first_name = trim($_POST['first_name'] ?? '');
     $last_name  = trim($_POST['last_name'] ?? '');
     $email      = trim($_POST['email'] ?? '');
     $contact    = trim($_POST['contact'] ?? '');
     $username   = trim($_POST['username'] ?? '');
     $password   = $_POST['password'] ?? '';
-    $role       = $_POST['role'] ?? 'tourist'; // 'tourist' or 'admin'
+    $role       = $_POST['role'] ?? 'tourist'; 
 
+    // 2. Security: Block any manual 'admin' registration attempts via this script
+    if ($role === 'admin') {
+        handleError($mysqli, "Unauthorized registration role.");
+    }
+
+    // 3. Validation: Ensure required fields are not empty
     if (empty($username) || empty($password) || empty($email)) {
         handleError($mysqli, "Please fill in all required fields.");
     }
 
-    // Check if username already exists
+    // 4. Check if username exists (Prevention of duplicate accounts)
     $checkUser = $mysqli->prepare("SELECT username FROM users WHERE username = ?");
     $checkUser->bind_param("s", $username);
     $checkUser->execute();
@@ -29,36 +41,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         handleError($mysqli, "Username is already taken.");
     }
 
+    // Hash password for security
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    
+    // Start Transaction to ensure data is saved in both tables or none at all
     $mysqli->begin_transaction();
 
     try {
-        // 1. Insert into users table
+        // 5. Insert into main 'users' table
         $stmt1 = $mysqli->prepare("INSERT INTO users (username, password, role, status) VALUES (?, ?, ?, 'Active')");
         $stmt1->bind_param('sss', $username, $hashed_password, $role);
         $stmt1->execute();
+        
+        // Retrieve the generated user_id for the profile tables
         $user_id = $mysqli->insert_id;
 
-        // 2. Role-based insertion
-        if ($role === 'admin') {
-            // Assuming you have an 'admins' table
-            $stmt2 = $mysqli->prepare("INSERT INTO admins (user_id, first_name, last_name, email) VALUES (?, ?, ?, ?)");
-            $stmt2->bind_param('isss', $user_id, $first_name, $last_name, $email);
+        // 6. Role-based insertion into specific profile tables
+        if ($role === 'guide') {
+            // Insert into tour_guides table
+            $stmt2 = $mysqli->prepare("INSERT INTO tour_guides (user_id, first_name, last_name, email, phone_number) VALUES (?, ?, ?, ?, ?)");
+            $stmt2->bind_param('issss', $user_id, $first_name, $last_name, $email, $contact);
         } else {
-            // Insert into tourists table
+            // Default: Insert into tourists table
             $stmt2 = $mysqli->prepare("INSERT INTO tourists (user_id, first_name, last_name, email, phone_number) VALUES (?, ?, ?, ?, ?)");
             $stmt2->bind_param('issss', $user_id, $first_name, $last_name, $email, $contact);
         }
         
         $stmt2->execute();
+        
+        // 7. Everything worked, save changes to database permanently
         $mysqli->commit();
 
+        // 8. Redirect to the next step: Profile Picture Selection
         echo "<script>
-                alert('Registration successful! Welcome to GuideMate.');
-                window.location.href = 'signinTouristAdmin.html';
+                alert('Registration successful! Let\'s set up your profile picture.');
+                window.location.href = 'select_profile_pic.php?user_id=$user_id&role=$role';
               </script>";
 
     } catch (Exception $e) {
+        // If anything fails during the process, undo everything
         $mysqli->rollback();
         handleError($mysqli, "Error during registration: " . $e->getMessage());
     }

@@ -6,64 +6,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    // 1. Fetch user details
+    // Fetch user and role
     $stmt = $mysqli->prepare("SELECT id, password, role FROM users WHERE username = ? AND status = 'Active'");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($user = $result->fetch_assoc()) {
-        // 2. Verify Password
         if (password_verify($password, $user['password'])) {
-            
-            // 3. Set Session variables for PHP use
+            // Password is correct, set Session variables
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $username;
 
             $role = $user['role'];
-            $userId = $user['id'];
-            $specificId = ''; // This will hold either tourist_id or guide_id
+            $specificId = '';
 
-            // 4. Retrieve specific IDs based on role for the frontend
+            // 1. If Tourist, get tourist_id
             if ($role === 'tourist') {
                 $tStmt = $mysqli->prepare("SELECT tourist_id FROM tourists WHERE user_id = ?");
-                $tStmt->bind_param("i", $userId);
+                $tStmt->bind_param("i", $user['id']);
                 $tStmt->execute();
                 $tRes = $tStmt->get_result();
-                if ($row = $tRes->fetch_assoc()) {
-                    $specificId = $row['tourist_id'];
-                }
+                if ($tRow = $tRes->fetch_assoc()) $specificId = $tRow['tourist_id'];
                 $tStmt->close();
-            } elseif ($role === 'guide') {
+            } 
+            // 2. If Guide, get guide_id
+            elseif ($role === 'guide') {
                 $gStmt = $mysqli->prepare("SELECT guide_id FROM tour_guides WHERE user_id = ?");
-                $gStmt->bind_param("i", $userId);
+                $gStmt->bind_param("i", $user['id']);
                 $gStmt->execute();
                 $gRes = $gStmt->get_result();
-                if ($row = $gRes->fetch_assoc()) {
-                    $specificId = $row['guide_id'];
-                }
+                if ($gRow = $gRes->fetch_assoc()) $specificId = $gRow['guide_id'];
                 $gStmt->close();
             }
 
-            // 5. JavaScript Redirection and LocalStorage setup
+            // 3. Handle JavaScript LocalStorage and Redirection
             echo "<script>
                 localStorage.setItem('userLoggedIn', 'true');
-                localStorage.setItem('userId', '$userId');
-                localStorage.setItem('role', '$role');";
+                localStorage.setItem('userId', '" . $user['id'] . "');
+                localStorage.setItem('role', '" . $role . "');";
 
             if ($role === 'admin') {
                 echo "window.location.href = 'admin_dashboard.php';";
             } elseif ($role === 'guide') {
-                echo "localStorage.setItem('guideId', '$specificId');
-                      alert('Welcome back, Guide!');
+                echo "localStorage.setItem('guideId', '" . $specificId . "');
                       window.location.href = 'tourGuideDashboardNew.html';";
             } else {
-                // Default to Tourist
-                echo "localStorage.setItem('touristId', '$specificId');
+                echo "localStorage.setItem('touristId', '" . $specificId . "');
                       window.location.href = 'landingpage.html';";
             }
-            
             echo "</script>";
             exit();
 
