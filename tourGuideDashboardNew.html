@@ -8,6 +8,27 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="tourGuideDashboard.css">
+    <link rel="stylesheet" href="tourGuideDashboardNew.css">
+    <style>
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .review-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .review-item:last-child { border-bottom: none; }
+        
+        /* Ensure consistent card heights */
+        .glass-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+    </style>
 </head>
 <body>
 
@@ -19,75 +40,108 @@
         <a href="#">GUESTS</a>
     </nav>
     <div class="nav-right">
-        <div style="font-size: 0.9rem; background: #f0f0f0; padding: 8px 15px; border-radius: 10px; display: flex; align-items: center;">
-            <img src="photos/vince.jfif" alt="Guide Profile" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
-            Guide: <b>John Lloyd Noya</b>
-        </div>
-        <span class="logout-btn" onclick="handleLogout()" style="margin-left: 15px; cursor: pointer;">
+        <span class="logout-btn" onclick="handleLogout()" style="cursor: pointer;">
             <i data-feather="log-out" style="width: 14px;"></i> LOGOUT
         </span>
     </div>
 </header>
 
-<section class="hero">
-    <span style="font-weight: 600; letter-spacing: 3px; color: #51ff9a; text-transform: uppercase;">Current Assignment</span>
-    <h1>CANYONEERING IN BADIAN</h1>
-    <p>Your group of 12 travelers is ready. Ensure all safety gear is double-checked before the first cliff jump at 9:30 AM. Stay hydrated and lead the way!</p>
-    <div>
-        <button class="btn btn-primary" style="background: white; color: var(--accent);">ACTIVATE GPS</button>
-        <button class="btn btn-primary" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px);">GUEST MANIFEST</button>
-    </div>
-</section>
-
-<section class="explore">
-    <h2>Dashboard Overview</h2>
-    <div class="card-container">
-        <div class="glass-card">
-            <div class="icon-box"><i data-feather="calendar"></i></div>
-            <h3 style="margin-top: 0;">My Schedule</h3>
-            <p>You have 3 upcoming tours this week including the Simala Shrine pilgrimage.</p>
-            <button class="btn btn-outline" style="width: 100%;">VIEW ALL</button>
+<main>
+    <section class="hero">
+        
+        <span style="font-weight: 600; letter-spacing: 3px; color: #51ff9a; text-transform: uppercase;">Current Assignment</span>
+        <h1>CANYONEERING IN BADIAN</h1>
+        <p>Your group of 12 travelers is ready. Ensure all safety gear is double-checked before the first cliff jump at 9:30 AM.</p>
+        <div>
+            <button class="btn btn-primary" style="background: white; color: var(--accent);">ACTIVATE GPS</button>
+            <button class="btn btn-primary" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px);">GUEST MANIFEST</button>
         </div>
+    </section>
 
-    </div>
-</section>
-
-<section class="reviews">
-    <h2>Detailed Daily Tasks</h2>
-    <div class="review-grid">
-        <div class="glass-card task-card">
-            <div class="task-header">
-                <span style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">08:00 AM</span>
-                <span style="font-size: 0.75rem; background: #f0f0f0; padding: 4px 10px; border-radius: 6px; font-weight: 600; color: #666;">UPCOMING</span>
-            </div>
-            <h3 style="margin: 0 0 10px 0;">Bantayan Island Hopping</h3>
-            <p style="margin: 5px 0;"><i data-feather="map-pin" style="width: 16px; vertical-align: middle; margin-right: 5px;"></i> Sta. Fe Port Meeting Point</p>
-            <p style="margin: 5px 0;"><i data-feather="users" style="width: 16px; vertical-align: middle; margin-right: 5px;"></i> 8 Travelers (International Group)</p>
-            <div style="display: flex; gap: 12px; margin-top: 20px;">
-                <button class="btn btn-primary" style="flex: 1; margin-right: 0;">Check-in</button>
-                <button class="btn btn-outline" style="flex: 1;">Contact</button>
+    <section class="explore">
+        <div class="glass-card guide-welcome-card" style="display: flex; align-items: center; margin-bottom: 30px; padding: 25px;">
+            <img src="photos/vince.jfif" alt="Guide Profile" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); margin-right: 20px;">
+            <div>
+                <span style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: #666;">Tour Guide Profile</span>
+                <h1 style="margin: 0; font-size: 1.8rem;">John Lloyd Noya</h1>
+                <p style="margin: 5px 0 0; color: var(--accent); font-weight: 600;">Verified Expert Guide ★ <span id="ratingText">4.9</span></p>
             </div>
         </div>
 
-        <div class="glass-card task-card">
-            <div class="icon-box" style="margin: 0 0 15px 0; background: #fff5f5; color: #e74c3c;"><i data-feather="shield"></i></div>
-            <h3 style="margin: 0 0 10px 0;">SOS / Support</h3>
-            <p>Direct priority line to Tourism Admin and local emergency responders for Badian district.</p>
-            <button class="btn btn-danger">INITIATE EMERGENCY CALL</button>
+        <h2>Performance Overview</h2>
+        <div class="overview-grid">
+            <div class="glass-card" style="text-align: center; padding: 20px;">
+                <div class="icon-box" style="margin: 0 auto 10px; background: #fff9db; color: #fcc419;">
+                    <i data-feather="star"></i>
+                </div>
+                <h2 id="avgRating" style="font-size: 2.2rem; margin: 5px 0;">0.0</h2>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 10px;">Average Rating</p>
+                <div id="starContainer" style="color: #fcc419;"></div>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px;">
+                <div class="icon-box" style="margin: 0 auto 10px; background: #e7f5ff; color: #228be6;">
+                    <i data-feather="message-square"></i>
+                </div>
+                <h2 id="totalReviews" style="font-size: 2.2rem; margin: 5px 0;">0</h2>
+                <p style="color: #666; font-size: 0.9rem;">Total Reviews</p>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px;">
+                <div class="icon-box" style="margin: 0 auto 10px; background: #ebfbee; color: #40c057;">
+                    <i data-feather="trending-up"></i>
+                </div>
+                <h2 style="font-size: 2.2rem; margin: 5px 0;">98%</h2>
+                <p style="color: #666; font-size: 0.9rem;">Tourist Satisfaction</p>
+            </div>
         </div>
-    </div>
-</section>
 
-<script>
-    feather.replace();
+        <h2>Dashboard Overview</h2>
+        <div class="card-container">
+            <div class="glass-card">
+                <div class="icon-box"><i data-feather="calendar"></i></div>
+                <h3 style="margin-top: 0;">My Schedule</h3>
+                <p>You have 3 upcoming tours this week including the Simala Shrine pilgrimage.</p>
+                <button class="btn btn-outline" style="width: 100%;">VIEW ALL</button>
+            </div>
 
-    function handleLogout() {
-        // Confirm with the user before logging out
-        if (confirm("Are you sure you want to log out, John Lloyd?")) {
-            // Redirect back to login page
-            window.location.href = "signinTouristAdmin.html"; 
-        }
-    }
-</script>
+            <div class="glass-card">
+                <div class="icon-box" style="background: #f3e5f5; color: #9c27b0;"><i data-feather="users"></i></div>
+                <h3 style="margin-top: 0;">Recent Feedback</h3>
+                <div id="recentFeedbackList">
+                    <p style="color: #888; font-size: 0.85rem;">No reviews yet.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="reviews">
+        <h2>Detailed Daily Tasks</h2>
+        <div class="review-grid">
+            <div class="glass-card task-card">
+                <div class="task-header">
+                    <span style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">08:00 AM</span>
+                    <span style="font-size: 0.75rem; background: #f0f0f0; padding: 4px 10px; border-radius: 6px; font-weight: 600; color: #666;">UPCOMING</span>
+                </div>
+                <h3 style="margin: 0 0 10px 0;">Bantayan Island Hopping</h3>
+                <p style="margin: 5px 0;"><i data-feather="map-pin" style="width: 16px;"></i> Sta. Fe Port Meeting Point</p>
+                <p style="margin: 5px 0;"><i data-feather="users" style="width: 16px;"></i> 8 Travelers</p>
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button class="btn btn-primary" style="flex: 1;">Check-in</button>
+                    <button class="btn btn-outline" style="flex: 1;">Contact</button>
+                </div>
+            </div>
+
+            <div class="glass-card task-card">
+                <div class="icon-box" style="margin: 0 0 15px 0; background: #fff5f5; color: #e74c3c;"><i data-feather="shield"></i></div>
+                <h3 style="margin: 0 0 10px 0;">SOS / Support</h3>
+                <p>Direct priority line to Tourism Admin for Badian district.</p>
+                <button class="btn btn-danger" style="width: 100%;">INITIATE EMERGENCY CALL</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script src="tourGuideDashboardNew.js"></script>
 </body>
 </html>

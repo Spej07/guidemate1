@@ -1,8 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Standardize naming: Use 'fullName' to match landing page sync
+    // 1. INITIAL SYNC & SELECTORS
     let fullName = localStorage.getItem("fullName") || "Guest Traveler";
     
-    // Selectors
     const profileName = document.getElementById("profileName");
     const profileHandle = document.getElementById("profileHandle");
     const profilePics = document.querySelectorAll(".profile-pic, .large-avatar, #profilePic, #profileDropdownBtn");
@@ -24,11 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Run initial sync
+    // Run initial display sync
     updateDisplay(fullName);
     syncImages();
 
-    // EDIT PROFILE LOGIC
+    // 2. PROFILE EDITING LOGIC
     if (editBtn) {
         editBtn.addEventListener("click", () => {
             const currentName = profileName.textContent;
@@ -37,8 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (newName && newName.trim() !== "") {
                 localStorage.setItem("fullName", newName);
                 updateDisplay(newName);
-                
-                // Call landing page sync if available
                 if (typeof syncProfileData === "function") syncProfileData();
 
                 if(confirm("Would you also like to change your profile picture?")) {
@@ -48,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // IMAGE UPLOAD LOGIC
     if (imageInput) {
         imageInput.addEventListener("change", function() {
             const file = this.files[0];
@@ -65,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // TAB SWITCHING LOGIC
+    // 3. TAB SWITCHING LOGIC
     const profileTabs = document.querySelectorAll('.profile-tabs a');
     const activityContent = document.getElementById('activityContent');
     const reviewsContent = document.getElementById('reviewsContent');
@@ -89,11 +85,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    initializeProfileReviewForm();
+    // 4. INITIALIZE REVIEW SYSTEM
     initializeReviewTypeDropdown();
+    initializeProfileReviewForm();
 });
 
-// --- 6. REVIEW SYSTEM FUNCTIONS ---
+// --- 5. REVIEW SYSTEM FUNCTIONS ---
 
 function initializeReviewTypeDropdown() {
     const reviewTypeSelect = document.getElementById('reviewType');
@@ -108,8 +105,8 @@ function initializeReviewTypeDropdown() {
 function populateSubjectDropdown(reviewType, selectElement) {
     selectElement.innerHTML = '<option value="">Select a location or guide</option>';
     
-    // Uses global arrays defined in script.js
-    const dataPool = (reviewType === 'location') ? locationData : (reviewType === 'guide' ? guideData : []);
+    // Data pools from script.js
+    const dataPool = (reviewType === 'location') ? (window.locationData || []) : (reviewType === 'guide' ? (window.guideData || []) : []);
     
     dataPool.forEach(item => {
         const option = document.createElement('option');
@@ -137,11 +134,11 @@ function initializeProfileReviewForm() {
             return;
         }
 
-        const fullName = localStorage.getItem("fullName") || "Guest Traveler";
+        const currentFullName = localStorage.getItem("fullName") || "Guest Traveler";
 
         const newReview = {
             id: Date.now(),
-            name: fullName,
+            name: currentFullName, // This is what the guide will see as "Tourist Name"
             type: reviewType,
             subject: reviewSubject,
             rating: parseInt(rating),
@@ -149,17 +146,20 @@ function initializeProfileReviewForm() {
             date: new Date().toLocaleDateString()
         };
 
+        // Standardized Storage Key
         let userReviews = JSON.parse(localStorage.getItem('userReviews')) || [];
-        userReviews.push(newReview);
+        userReviews.unshift(newReview); // Newest first
         localStorage.setItem('userReviews', JSON.stringify(userReviews));
 
-        showProfileMessage('Review submitted successfully!', 'success', messageDiv);
+        showProfileMessage('Review submitted successfully! Your guide can now see it.', 'success', messageDiv);
         form.reset();
         loadUserReviews();
 
         setTimeout(() => {
-            messageDiv.textContent = '';
-            messageDiv.classList.remove('success', 'error');
+            if (messageDiv) {
+                messageDiv.textContent = '';
+                messageDiv.classList.remove('success', 'error');
+            }
         }, 3000);
     });
 }
@@ -181,10 +181,12 @@ function loadUserReviews() {
         reviewElement.innerHTML = `
             <div class="review-item-header">
                 <div class="review-item-title">${review.subject}</div>
-                <span class="review-item-type">${review.type.charAt(0).toUpperCase() + review.type.slice(1)}</span>
+                <span class="review-item-type" style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">
+                    ${review.type.toUpperCase()}
+                </span>
             </div>
-            <div class="review-item-rating">${'★'.repeat(review.rating)}</div>
-            <div class="review-item-text">${review.comment}</div>
+            <div class="review-item-rating" style="color: #fcc419; margin: 4px 0;">${'★'.repeat(review.rating)}</div>
+            <div class="review-item-text" style="margin-bottom: 5px;">${review.comment}</div>
             <small style="color: #999;">Submitted on ${review.date}</small>
         `;
         reviewsList.appendChild(reviewElement);
@@ -194,6 +196,6 @@ function loadUserReviews() {
 function showProfileMessage(message, type, element) {
     if (!element) return;
     element.textContent = message;
-    element.classList.remove('success', 'error');
+    element.className = ''; // Reset classes
     element.classList.add(type);
 }
