@@ -33,12 +33,18 @@
                     <p>Enter your details to become a GuideMate explorer.</p>
                 </div>
 
-                <div class="role-selector" style="display: flex; gap: 10px; margin-bottom: 25px;">
-                    <button type="button" class="role-btn active" data-role="tourist" id="btn-tourist">
-                        <i class="fa-solid fa-suitcase-rolling"></i> Tourist
+                <div class="role-selector" aria-label="Choose account type">
+                    <button type="button" class="role-btn active" data-role="tourist" id="btn-tourist" aria-pressed="true">
+                        <span class="role-icon" aria-hidden="true">
+                            <i class="fa-regular fa-compass"></i>
+                        </span>
+                        <span class="role-label">Tourist</span>
                     </button>
-                    <button type="button" class="role-btn" data-role="guide" id="btn-guide">
-                        <i class="fa-solid fa-map-location-dot"></i> Tour Guide
+                    <button type="button" class="role-btn" data-role="guide" id="btn-guide" aria-pressed="false">
+                        <span class="role-icon" aria-hidden="true">
+                            <i class="fa-regular fa-map"></i>
+                        </span>
+                        <span class="role-label">Tour Guide</span>
                     </button>
                 </div>
 

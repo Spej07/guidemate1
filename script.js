@@ -11,7 +11,8 @@ const defaultLocationData = [
 let locationData = [...defaultLocationData];
 let guideData = []; // Will be populated from the database
 
-const reviews = JSON.parse(localStorage.getItem('userReviews')) || [
+// Landing-page testimonials should not come from account-scoped browser storage.
+const reviews = [
     { name: "Mark D.", rating: 5, comment: "Amazing experience!" },
     { name: "Anna L.", rating: 4, comment: "Beautiful location and smooth booking." },
     { name: "Carlos M.", rating: 5, comment: "Best travel platform I’ve used." }
@@ -272,15 +273,38 @@ function initializeAuthButtons() {
     }
 }
 
+function clearStoredSessionState() {
+    const activeRole = localStorage.getItem("role") || "";
+    const activeUserId = localStorage.getItem("userId") || "";
+
+    localStorage.removeItem("userLoggedIn");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("role");
+    localStorage.removeItem("touristId");
+    localStorage.removeItem("guideId");
+    localStorage.removeItem("firstName");
+    localStorage.removeItem("lastName");
+    localStorage.removeItem("fullName");
+    localStorage.removeItem("profileImage");
+    localStorage.removeItem("userReviews");
+
+    if (activeRole && activeUserId) {
+        localStorage.removeItem(`firstName:${activeRole}:${activeUserId}`);
+        localStorage.removeItem(`lastName:${activeRole}:${activeUserId}`);
+        localStorage.removeItem(`profileName:${activeRole}:${activeUserId}`);
+        localStorage.removeItem(`profileImage:${activeRole}:${activeUserId}`);
+    }
+}
+
 function handleLogout() {
     if (typeof showLogoutConfirm === 'function') {
         showLogoutConfirm(function() {
-            localStorage.removeItem("userLoggedIn");
-            window.location.reload();
+            clearStoredSessionState();
+            window.location.href = "logout.php";
         }, 'Sign out? Yes or No');
     } else {
-        localStorage.removeItem("userLoggedIn");
-        window.location.reload();
+        clearStoredSessionState();
+        window.location.href = "logout.php";
     }
 }
 

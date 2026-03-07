@@ -9,11 +9,11 @@ document.addEventListener("DOMContentLoaded", () => {
       // Reset all buttons
       roleButtons.forEach(b => {
           b.classList.remove("active");
-          b.style.border = "1px solid #ccc";
+          b.setAttribute("aria-pressed", "false");
       });
       // Activate clicked button
       btn.classList.add("active");
-      btn.style.border = "1px solid #0d9488";
+      btn.setAttribute("aria-pressed", "true");
       roleInput.value = btn.dataset.role;
     });
   });

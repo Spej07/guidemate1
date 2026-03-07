@@ -27,6 +27,8 @@ if ($guideNameRes && $guideNameRow = $guideNameRes->fetch_assoc()) {
     if ($guideName === '') $guideName = 'Guide';
 }
 
+gm_ensure_review_replies_table($mysqli);
+
 $sql = "SELECT r.review_id, r.rating, r.comment, r.status, r.created_at,
         t.first_name, t.last_name,
         rr.reply_text, rr.created_at AS reply_at

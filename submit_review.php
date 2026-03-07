@@ -2,6 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 require_once 'dbconnect.php';
+require_once 'guide_booking_helpers.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -18,6 +19,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'tourist' || empty($_SESSI
 
 $locationName = trim((string)($data['location_name'] ?? ''));
 $guideName = trim((string)($data['guide_name'] ?? ''));
+$guideId = isset($data['guide_id']) ? (int)$data['guide_id'] : 0;
 $reviewType = strtolower(trim((string)($data['review_type'] ?? '')));
 $comment = trim((string)($data['comment'] ?? ''));
 $rating = isset($data['rating']) ? (int)$data['rating'] : 0;
@@ -32,6 +34,11 @@ if ($locationName === '' || $guideName === '' || $comment === '' || $rating < 1 
 }
 
 $userId = (int)$_SESSION['user_id'];
+
+if (!ensure_guide_bookings_table($mysqli)) {
+    echo json_encode(['success' => false, 'message' => 'Could not verify your booking history']);
+    exit;
+}
 
 $touristStmt = $mysqli->prepare('SELECT tourist_id FROM tourists WHERE user_id = ? LIMIT 1');
 if (!$touristStmt) {
@@ -50,17 +57,31 @@ if (!$touristRow || empty($touristRow['tourist_id'])) {
 }
 $touristId = (int)$touristRow['tourist_id'];
 
-$guideStmt = $mysqli->prepare("
-    SELECT guide_id
-    FROM tour_guides
-    WHERE TRIM(CONCAT(first_name, ' ', last_name)) = ?
-    LIMIT 1
-");
-if (!$guideStmt) {
-    echo json_encode(['success' => false, 'message' => 'Could not prepare guide lookup']);
-    exit;
+if ($guideId > 0) {
+    $guideStmt = $mysqli->prepare("
+        SELECT guide_id, TRIM(CONCAT(first_name, ' ', last_name)) AS guide_name
+        FROM tour_guides
+        WHERE guide_id = ?
+        LIMIT 1
+    ");
+    if (!$guideStmt) {
+        echo json_encode(['success' => false, 'message' => 'Could not prepare guide lookup']);
+        exit;
+    }
+    $guideStmt->bind_param('i', $guideId);
+} else {
+    $guideStmt = $mysqli->prepare("
+        SELECT guide_id, TRIM(CONCAT(first_name, ' ', last_name)) AS guide_name
+        FROM tour_guides
+        WHERE TRIM(CONCAT(first_name, ' ', last_name)) = ?
+        LIMIT 1
+    ");
+    if (!$guideStmt) {
+        echo json_encode(['success' => false, 'message' => 'Could not prepare guide lookup']);
+        exit;
+    }
+    $guideStmt->bind_param('s', $guideName);
 }
-$guideStmt->bind_param('s', $guideName);
 $guideStmt->execute();
 $guideRes = $guideStmt->get_result();
 $guideRow = $guideRes ? $guideRes->fetch_assoc() : null;
@@ -71,6 +92,30 @@ if (!$guideRow || empty($guideRow['guide_id'])) {
     exit;
 }
 $guideId = (int)$guideRow['guide_id'];
+$guideName = trim((string)($guideRow['guide_name'] ?? $guideName));
+
+$bookingStmt = $mysqli->prepare("
+    SELECT booking_id
+    FROM guide_bookings
+    WHERE tourist_user_id = ?
+      AND guide_id = ?
+      AND status IN ('Approved', 'Completed')
+    LIMIT 1
+");
+if (!$bookingStmt) {
+    echo json_encode(['success' => false, 'message' => 'Could not verify your booking']);
+    exit;
+}
+$bookingStmt->bind_param('ii', $userId, $guideId);
+$bookingStmt->execute();
+$bookingRes = $bookingStmt->get_result();
+$bookingRow = $bookingRes ? $bookingRes->fetch_assoc() : null;
+$bookingStmt->close();
+
+if (!$bookingRow) {
+    echo json_encode(['success' => false, 'message' => 'You can only review guides that you have booked.']);
+    exit;
+}
 
 // Keep location context in comment for existing schema compatibility.
 $finalComment = "Type: {$reviewType}\nLocation: {$locationName}\nReview: {$comment}";
@@ -94,6 +139,7 @@ echo json_encode([
     'message' => 'Review submitted successfully',
     'review' => [
         'location_name' => $locationName,
+        'guide_id' => $guideId,
         'guide_name' => $guideName,
         'review_type' => $reviewType,
         'rating' => $rating,

@@ -73,6 +73,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // 3. Handle JavaScript LocalStorage and Redirection
             echo "<script>
+                var previousRole = localStorage.getItem('role') || '';
+                var previousUserId = localStorage.getItem('userId') || '';
+                if (previousRole && previousUserId) {
+                    localStorage.removeItem('firstName:' + previousRole + ':' + previousUserId);
+                    localStorage.removeItem('lastName:' + previousRole + ':' + previousUserId);
+                    localStorage.removeItem('profileName:' + previousRole + ':' + previousUserId);
+                    localStorage.removeItem('profileImage:' + previousRole + ':' + previousUserId);
+                }
+                localStorage.removeItem('touristId');
+                localStorage.removeItem('guideId');
+                localStorage.removeItem('userReviews');
                 localStorage.setItem('userLoggedIn', 'true');
                 localStorage.setItem('userId', " . $userIdJs . ");
                 localStorage.setItem('role', " . $roleJs . ");

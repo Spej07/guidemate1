@@ -4,6 +4,7 @@
  */
 session_start();
 require_once 'dbconnect.php';
+require_once 'review_helpers.php';
 
 header('Content-Type: application/json');
 
@@ -20,6 +21,11 @@ if (!$res || !$row = $res->fetch_assoc()) {
     exit;
 }
 $guide_id = (int)$row['guide_id'];
+
+if (!gm_ensure_review_replies_table($mysqli)) {
+    echo json_encode(['ok' => false, 'error' => 'Could not prepare replies storage']);
+    exit;
+}
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!$input || empty($input['review_id']) || !isset($input['reply_text'])) {

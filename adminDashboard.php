@@ -444,6 +444,73 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
         </div>
     </main>
 
+    <section class="pending-guides-section">
+        <h2 class="panel-section-title">System maintenance tools</h2>
+    </section>
+
+    <main class="admin-grid security-grid">
+        <div class="panel pending-panel table-panel">
+            <div class="panel-head">
+                <h3>Maintenance status</h3>
+                <i data-feather="tool"></i>
+                <span class="pending-subtitle">Check debug-log readiness, booking table health, and project maintenance availability.</span>
+            </div>
+            <div id="maintenanceStatusContainer">
+                <p class="pending-loading" id="maintenanceStatusLoading">Loading...</p>
+                <table class="pending-table" id="maintenanceStatusTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Area</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="maintenanceStatusBody"></tbody>
+                </table>
+                <p class="pending-empty" id="maintenanceStatusEmpty" style="display: none;">Could not load the maintenance status.</p>
+            </div>
+        </div>
+
+        <div class="panel feed-panel security-summary-panel">
+            <div class="panel-head">
+                <h3>Maintenance actions</h3>
+                <span class="pending-subtitle">Refresh system checks, inspect current booking counts, and clear the project debug log when needed.</span>
+            </div>
+            <div id="maintenanceActionsContainer">
+                <p class="pending-loading" id="maintenanceActionsLoading">Loading...</p>
+                <div id="maintenanceActionsContent" style="display: none;">
+                    <div class="security-summary-stats">
+                        <div class="security-summary-card">
+                            <span class="security-summary-label">Debug log size</span>
+                            <strong id="maintenanceLogSize">0 B</strong>
+                        </div>
+                        <div class="security-summary-card">
+                            <span class="security-summary-label">Pending bookings</span>
+                            <strong id="maintenancePendingBookings">0</strong>
+                        </div>
+                        <div class="security-summary-card">
+                            <span class="security-summary-label">Approved bookings</span>
+                            <strong id="maintenanceApprovedBookings">0</strong>
+                        </div>
+                        <div class="security-summary-card">
+                            <span class="security-summary-label">Completed bookings</span>
+                            <strong id="maintenanceCompletedBookings">0</strong>
+                        </div>
+                    </div>
+                    <p class="security-summary-updated" id="maintenanceUpdated"></p>
+                    <p class="security-summary-updated" id="maintenanceLogMeta"></p>
+                    <p class="security-summary-updated" id="maintenanceBookingMeta"></p>
+                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin:1rem 0;">
+                        <button type="button" class="profile-submit-btn" id="refreshMaintenanceBtn">Refresh status</button>
+                        <button type="button" class="profile-submit-btn" id="clearDebugLogBtn">Clear debug log</button>
+                    </div>
+                    <div class="feed-list security-recommendations" id="maintenanceRecommendations"></div>
+                </div>
+                <p class="pending-empty" id="maintenanceActionsEmpty" style="display: none;">Could not load maintenance actions.</p>
+            </div>
+        </div>
+    </main>
+
     <div class="admin-notice" id="adminNotice" aria-live="polite" aria-atomic="true">
         <span id="adminNoticeMessage"></span>
         <button type="button" class="admin-notice-close" id="adminNoticeClose" aria-label="Close message">OK</button>
@@ -1541,6 +1608,17 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             }
         }
 
+        function getMaintenanceBadgeClass(status) {
+            switch (status) {
+                case 'Implemented':
+                    return 'badge-security-ok';
+                case 'Needs attention':
+                    return 'badge-security-alert';
+                default:
+                    return 'badge-security-partial';
+            }
+        }
+
         function loadSecurityStatus() {
             var loading = document.getElementById('securityStatusLoading');
             var table = document.getElementById('securityStatusTable');
@@ -1620,6 +1698,149 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                 });
         }
 
+        function loadSystemMaintenanceStatus() {
+            var loading = document.getElementById('maintenanceStatusLoading');
+            var table = document.getElementById('maintenanceStatusTable');
+            var body = document.getElementById('maintenanceStatusBody');
+            var empty = document.getElementById('maintenanceStatusEmpty');
+            var actionsLoading = document.getElementById('maintenanceActionsLoading');
+            var actionsContent = document.getElementById('maintenanceActionsContent');
+            var actionsEmpty = document.getElementById('maintenanceActionsEmpty');
+
+            if (loading) loading.style.display = 'block';
+            if (table) table.style.display = 'none';
+            if (empty) empty.style.display = 'none';
+            if (actionsLoading) actionsLoading.style.display = 'block';
+            if (actionsContent) actionsContent.style.display = 'none';
+            if (actionsEmpty) actionsEmpty.style.display = 'none';
+
+            fetchWithTimeout('get_system_maintenance_status.php', { credentials: 'same-origin' })
+                .then(function(r) {
+                    if (r.status === 403) {
+                        window.location.href = 'signinTouristAdmin.html';
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(function(data) {
+                    if (!data) return;
+
+                    var items = Array.isArray(data.items) ? data.items : [];
+                    var summary = data.summary || {};
+                    var log = data.log || {};
+                    var bookingCounts = data.booking_counts || {};
+
+                    if (loading) loading.style.display = 'none';
+                    if (actionsLoading) actionsLoading.style.display = 'none';
+
+                    if (!items.length) {
+                        if (empty) empty.style.display = 'block';
+                        if (actionsEmpty) actionsEmpty.style.display = 'block';
+                        return;
+                    }
+
+                    if (table) table.style.display = 'table';
+                    if (body) {
+                        body.innerHTML = items.map(function(item) {
+                            return '<tr>' +
+                                '<td><b>' + escapeHtml(item.label || '') + '</b></td>' +
+                                '<td><span class="badge ' + getMaintenanceBadgeClass(item.status) + '">' + escapeHtml(item.status || 'Partial') + '</span></td>' +
+                                '<td>' + escapeHtml(item.detail || '') + '</td>' +
+                                '</tr>';
+                        }).join('');
+                    }
+
+                    if (actionsContent) actionsContent.style.display = 'block';
+
+                    var logSize = document.getElementById('maintenanceLogSize');
+                    var pending = document.getElementById('maintenancePendingBookings');
+                    var approved = document.getElementById('maintenanceApprovedBookings');
+                    var completed = document.getElementById('maintenanceCompletedBookings');
+                    var updated = document.getElementById('maintenanceUpdated');
+                    var logMeta = document.getElementById('maintenanceLogMeta');
+                    var bookingMeta = document.getElementById('maintenanceBookingMeta');
+                    var recommendations = document.getElementById('maintenanceRecommendations');
+                    var refreshBtn = document.getElementById('refreshMaintenanceBtn');
+                    var clearBtn = document.getElementById('clearDebugLogBtn');
+
+                    if (logSize) logSize.textContent = log.size_human || '0 B';
+                    if (pending) pending.textContent = Number(bookingCounts.pending || 0);
+                    if (approved) approved.textContent = Number(bookingCounts.approved || 0);
+                    if (completed) completed.textContent = Number(bookingCounts.completed || 0);
+                    if (updated) updated.textContent = summary.updated_at ? ('Last checked: ' + summary.updated_at) : '';
+                    if (logMeta) {
+                        logMeta.textContent = log.exists
+                            ? ('Debug log ready: ' + (log.modified_at ? ('last updated ' + log.modified_at) : 'timestamp unavailable'))
+                            : 'Debug log file has not been created yet.';
+                    }
+                    if (bookingMeta) {
+                        var otherCount = Number(bookingCounts.other || 0);
+                        bookingMeta.textContent = 'Booking states tracked: Pending ' + Number(bookingCounts.pending || 0) +
+                            ', Approved ' + Number(bookingCounts.approved || 0) +
+                            ', Completed ' + Number(bookingCounts.completed || 0) +
+                            (otherCount > 0 ? (', Other ' + otherCount) : '');
+                    }
+                    if (recommendations) {
+                        var recs = Array.isArray(summary.recommendations) ? summary.recommendations : [];
+                        recommendations.innerHTML = recs.map(function(item) {
+                            return '<div class="feed-item ' + (item.variant ? escapeHtml(item.variant) : '') + '">' +
+                                '<p><b>' + escapeHtml(item.title || '') + '</b><br>' + escapeHtml(item.detail || '') + '</p>' +
+                                '</div>';
+                        }).join('');
+                    }
+
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        refreshBtn.onclick = function() {
+                            refreshBtn.disabled = true;
+                            loadSystemMaintenanceStatus();
+                        };
+                    }
+
+                    if (clearBtn) {
+                        clearBtn.disabled = !log.can_clear;
+                        clearBtn.textContent = log.exists ? 'Clear debug log' : 'Create empty debug log';
+                        clearBtn.onclick = function() {
+                            showAdminConfirm('Clear the project debug log? This only removes the current log contents.').then(function(confirmed) {
+                                if (!confirmed) return;
+                                clearBtn.disabled = true;
+                                clearBtn.textContent = 'Clearing…';
+                                fetch('clear_debug_log.php', { method: 'POST', credentials: 'same-origin' })
+                                    .then(function(r) {
+                                        if (r.status === 403) {
+                                            window.location.href = 'signinTouristAdmin.html';
+                                            return null;
+                                        }
+                                        return r.json();
+                                    })
+                                    .then(function(res) {
+                                        if (!res) return;
+                                        if (res.ok) {
+                                            showAdminNotice(res.message || 'Debug log cleared.');
+                                            loadSystemMaintenanceStatus();
+                                        } else {
+                                            showAdminNotice(res.error || 'Could not clear debug log.');
+                                            clearBtn.disabled = false;
+                                            clearBtn.textContent = 'Clear debug log';
+                                        }
+                                    })
+                                    .catch(function() {
+                                        showAdminNotice('Request failed.');
+                                        clearBtn.disabled = false;
+                                        clearBtn.textContent = 'Clear debug log';
+                                    });
+                            });
+                        };
+                    }
+                })
+                .catch(function() {
+                    if (loading) loading.style.display = 'none';
+                    if (actionsLoading) actionsLoading.style.display = 'none';
+                    if (empty) empty.style.display = 'block';
+                    if (actionsEmpty) actionsEmpty.style.display = 'block';
+                });
+        }
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
                 updateDashboardDate();
@@ -1638,6 +1859,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                 loadTopRatedGuides();
                 loadReportedReviews();
                 loadSecurityStatus();
+                loadSystemMaintenanceStatus();
             });
         } else {
             updateDashboardDate();
@@ -1656,6 +1878,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             loadTopRatedGuides();
             loadReportedReviews();
             loadSecurityStatus();
+            loadSystemMaintenanceStatus();
         }
     })();
     </script>
