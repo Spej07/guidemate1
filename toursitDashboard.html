@@ -14,7 +14,7 @@
         <div class="logo">GuideMate 🌊</div>
         <div style="display: flex; align-items: center;">
             <span style="font-weight: 600;">My Bookings</span>
-            <span class="logout-link" onclick="location.href='landingpage.html'">LOGOUT</span>
+            <span class="logout-link" id="touristDashboardLogout" style="cursor:pointer;">LOGOUT</span>
         </div>
     </nav>
 
@@ -61,8 +61,21 @@
         </div>
     </div>
 
+    <script src="logout_modal.js"></script>
     <script>
         feather.replace();
+        (function() {
+            var el = document.getElementById('touristDashboardLogout');
+            if (el && typeof showLogoutConfirm === 'function') {
+                el.addEventListener('click', function() {
+                    showLogoutConfirm(function() {
+                        window.location.href = 'landingpage.html';
+                    }, 'Sign out? Yes or No');
+                });
+            } else if (el) {
+                el.addEventListener('click', function() { window.location.href = 'landingpage.html'; });
+            }
+        })();
     </script>
 </body>
 </html>

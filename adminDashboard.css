@@ -1,11 +1,12 @@
- * {
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #0f4c75, #3282b8, #bbe1fa);
+            background: linear-gradient(135deg, #0f4c75 0%, #1b6ca8 40%, #3282b8 70%, #bbe1fa 100%);
+            background-attachment: fixed;
             color: #333;
             min-height: 100vh;
             display: flex;
@@ -14,9 +15,10 @@
 
         /* Navigation */
         .glass-nav {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 76, 117, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -24,11 +26,13 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
         .logo {
             font-weight: 800;
             font-size: 1.5rem;
             color: #fff;
+            letter-spacing: 0.02em;
         }
         .v-tag {
             background: #ff6b6b;
@@ -47,11 +51,20 @@
             font-weight: 600;
             transition: color 0.3s;
         }
+        .nav-links a.nav-active {
+            color: #ffeb3b;
+            font-weight: 700;
+        }
         .nav-links span.active {
             color: #ffeb3b;
         }
-        .nav-links span:hover {
+        .nav-links span:hover,
+        .nav-links a:hover {
             color: #ffeb3b;
+        }
+        .nav-links a.nav-link:hover,
+        .nav-links a:not(.logout-link):hover {
+            color: #ffeb3b !important;
         }
         .logout-link {
             background: #00aa6c !important;
@@ -79,16 +92,21 @@
         /* Header */
         .dashboard-header {
             text-align: center;
-            padding: 2rem;
+            padding: 2.5rem 2rem;
             color: #fff;
         }
         .dashboard-header p {
             font-weight: 300;
             margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            letter-spacing: 0.1em;
+            opacity: 0.95;
         }
         .dashboard-header h1 {
             font-weight: 800;
             font-size: 2.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.02em;
         }
 
         /* Stats Row */
@@ -100,31 +118,39 @@
             flex-wrap: wrap;
         }
         .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 1.75rem;
             text-align: center;
             flex: 1;
             min-width: 200px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
         }
         .stat-card label {
             display: block;
             font-weight: 600;
-            color: #fff;
+            color: rgba(255, 255, 255, 0.95);
             margin-bottom: 0.5rem;
             text-transform: uppercase;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
         }
         .stat-card .value {
-            font-size: 2rem;
+            font-size: 2.25rem;
             font-weight: 800;
             color: #fff;
         }
         .blue-glow {
             color: #00d4ff;
-            text-shadow: 0 0 10px #00d4ff;
+            text-shadow: 0 0 12px rgba(0, 212, 255, 0.6);
         }
 
         /* Main Grid */
@@ -140,11 +166,13 @@
 
         /* Panels */
         .panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: #fff;
         }
         .panel-head {
@@ -154,7 +182,8 @@
             margin-bottom: 1rem;
         }
         .panel-head h3 {
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1.1rem;
         }
         .panel-head i {
             cursor: pointer;
@@ -253,4 +282,174 @@
             .nav-links {
                 display: none; /* Hide on mobile, or make a hamburger menu if needed */
             }
+        }
+
+        /* Section titles */
+        .panel-section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 1.5rem 0 0.75rem;
+            padding: 0 0.25rem;
+            text-transform: none;
+            letter-spacing: 0.02em;
+        }
+        .panel-section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        /* Pending guides section */
+        .pending-guides-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 1rem;
+        }
+        .pending-panel .panel-head {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .pending-panel .panel-head h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .pending-subtitle {
+            width: 100%;
+            font-size: 0.85rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        .pending-loading,
+        .pending-empty {
+            margin: 0;
+            padding: 1rem 0;
+            opacity: 0.9;
+        }
+        .pending-table {
+            margin-top: 0.5rem;
+        }
+        .approve-guide-btn {
+            background: #00aa6c;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .approve-guide-btn:hover:not(:disabled) {
+            background: #008855;
+        }
+        .approve-guide-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .punish-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .punish-btn {
+            background: #ff9800;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .punish-btn:hover:not(:disabled) {
+            background: #f57c00;
+        }
+        .punish-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .spot-price-input {
+            width: 120px;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .save-spot-price-btn {
+            background: #00aa6c;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .save-spot-price-btn:hover:not(:disabled) {
+            background: #008855;
+        }
+        .save-spot-price-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .spot-actions {
+            display: inline-flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .delete-spot-btn {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .delete-spot-btn:hover:not(:disabled) {
+            background: #c82333;
+        }
+        .delete-spot-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .delete-spots-bulk-btn {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .delete-spots-bulk-btn:hover:not(:disabled) {
+            background: #c82333;
+        }
+        .delete-spots-bulk-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .pardon-btn {
+            background: #00aa6c;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pardon-btn:hover:not(:disabled) {
+            background: #008855;
+        }
+        .pardon-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }

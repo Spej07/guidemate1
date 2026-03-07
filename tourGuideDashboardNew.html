@@ -21,6 +21,31 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
         .review-item:last-child { border-bottom: none; }
+        .review-panel-box {
+            margin-top: 12px;
+            border: 2px solid rgba(20, 39, 61, 0.14);
+            border-radius: 20px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .review-reply-link {
+            display: block;
+            width: 100%;
+            margin-top: 14px;
+            padding: 16px 18px;
+            border: 2px solid #24364b;
+            border-radius: 18px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #24364b;
+            background: #fff;
+        }
+        .review-reply-link:hover {
+            background: #f7f9fc;
+        }
         
         /* Ensure consistent card heights */
         .glass-card {
@@ -35,40 +60,77 @@
 <header class="navbar">
     <div class="logo" style="font-weight: 800; font-size: 1.3rem; letter-spacing: 1px;"> GuideMate🌴</div>
     <nav>
-        <a href="#" style="color: var(--accent);">DASHBOARD</a>
+        <a href="tourGuideDashboardNew.html" style="color: var(--accent);">DASHBOARD</a>
+        <a href="tourGuideProfile.html">PROFILE</a>
         <a href="#">MY TOURS</a>
         <a href="#">GUESTS</a>
     </nav>
     <div class="nav-right">
-        <span class="logout-btn" onclick="handleLogout()" style="cursor: pointer;">
-            <i data-feather="log-out" style="width: 14px;"></i> LOGOUT
-        </span>
+        <div class="profile-container">
+            <img src="photos/default.jpg" alt="Profile" class="profile-pic" id="guideNavProfilePic" title="Profile">
+            <div class="dropdown-menu" id="guideNavDropdown">
+                <a href="tourGuideProfile.html">Profile</a>
+                <a href="tourGuideDashboardNew.html">Dashboard</a>
+                <hr>
+                <span class="sign-out-link" onclick="handleLogout()">Sign out</span>
+            </div>
+        </div>
     </div>
 </header>
 
 <main>
     <section class="hero">
         
-        <span style="font-weight: 600; letter-spacing: 3px; color: #51ff9a; text-transform: uppercase;">Current Assignment</span>
-        <h1>CANYONEERING IN BADIAN</h1>
-        <p>Your group of 12 travelers is ready. Ensure all safety gear is double-checked before the first cliff jump at 9:30 AM.</p>
-        <div>
+        <span id="bookingHeroLabel" style="font-weight: 600; letter-spacing: 3px; color: #51ff9a; text-transform: uppercase;">Current Assignment</span>
+        <h1 id="bookingHeroTitle">No approved booking yet</h1>
+        <p id="bookingHeroText">When an admin approves a tourist's booking request, the tourist name will appear here.</p>
+        <p id="bookingHeroMeta" style="font-weight: 600; color: rgba(255,255,255,0.92); margin-top: 10px;"></p>
+        <div id="bookingHeroActions" style="display: none;">
             <button class="btn btn-primary" style="background: white; color: var(--accent);">ACTIVATE GPS</button>
             <button class="btn btn-primary" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px);">GUEST MANIFEST</button>
         </div>
     </section>
 
     <section class="explore">
-        <div class="glass-card guide-welcome-card" style="display: flex; align-items: center; margin-bottom: 30px; padding: 25px;">
-            <img src="photos/vince.jfif" alt="Guide Profile" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); margin-right: 20px;">
-            <div>
-                <span style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: #666;">Tour Guide Profile</span>
-                <h1 style="margin: 0; font-size: 1.8rem;">John Lloyd Noya</h1>
-                <p style="margin: 5px 0 0; color: var(--accent); font-weight: 600;">Verified Expert Guide ★ <span id="ratingText">4.9</span></p>
+        <div class="tour-guide-profile-block">
+            <h2 style="margin: 0 0 16px 0; font-size: 1.1rem;">Profile management</h2>
+            <div class="glass-card guide-welcome-card" style="display: flex; align-items: center; margin-bottom: 30px; padding: 25px;">
+                <div style="position: relative;">
+                    <img id="guideProfilePic" src="photos/default.jpg" alt="Guide Profile" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); margin-right: 20px;">
+                    <a href="select_profile_pic.php?change=1" style="display: block; margin-top: 8px; font-size: 0.8rem; color: var(--accent); font-weight: 600;">Change profile picture</a>
+                    <small style="display: block; color: #888; font-size: 0.75rem;">1 change per 30 days</small>
+                </div>
+                <div>
+                    <span style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: #666;">Tour Guide</span>
+                    <h1 id="guideName" style="margin: 0; font-size: 1.8rem;">Guide</h1>
+                    <p style="margin: 5px 0 0; color: var(--accent); font-weight: 600;">★ <span id="ratingText">—</span> <span id="ratingCountText">(0 reviews)</span></p>
+                    <a href="tourGuideProfile.html" style="font-size: 0.85rem; color: var(--accent); margin-top: 6px; display: inline-block;">Manage full profile →</a>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-bottom: 24px; padding: 20px;">
+                <h3 style="margin: 0 0 16px 0; font-size: 1.1rem;">Update services offered &amp; profile</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 16px;">Services, experience, and service area.</p>
+                <div style="display: grid; gap: 16px; max-width: 400px;">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #333;">Services offered / Specialization</label>
+                        <input type="text" id="specialization" placeholder="e.g. Adventure tours, Island hopping" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #333;">Years of experience</label>
+                        <input type="number" id="experienceYears" min="0" max="70" value="0" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #333;">Location / Service area</label>
+                        <input type="text" id="serviceAreas" placeholder="e.g. Cebu City, Badian, Moalboal" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <button type="button" id="saveProfileBtn" class="btn btn-primary" style="width: 100%;">Save</button>
+                    <p id="profileSaveMessage" style="margin: 0; font-size: 0.85rem; display: none;"></p>
+                </div>
             </div>
         </div>
 
-        <h2>Performance Overview</h2>
+        <h2>Dashboard statistics</h2>
         <div class="overview-grid">
             <div class="glass-card" style="text-align: center; padding: 20px;">
                 <div class="icon-box" style="margin: 0 auto 10px; background: #fff9db; color: #fcc419;">
@@ -106,10 +168,13 @@
             </div>
 
             <div class="glass-card">
-                <div class="icon-box" style="background: #f3e5f5; color: #9c27b0;"><i data-feather="users"></i></div>
-                <h3 style="margin-top: 0;">Recent Feedback</h3>
-                <div id="recentFeedbackList">
-                    <p style="color: #888; font-size: 0.85rem;">No reviews yet.</p>
+                <div class="icon-box" style="background: #f3e5f5; color: #9c27b0;"><i data-feather="message-square"></i></div>
+                <h3 style="margin-top: 0;">View tourist reviews</h3>
+                <div class="review-panel-box">
+                    <div id="recentFeedbackList">
+                        <p style="color: #888; font-size: 0.85rem;">Loading…</p>
+                    </div>
+                    <a href="tourGuideProfile.html#reviews" class="review-reply-link">Reply to reviews</a>
                 </div>
             </div>
         </div>
@@ -142,6 +207,30 @@
     </section>
 </main>
 
+<script src="logout_modal.js"></script>
 <script src="tourGuideDashboardNew.js"></script>
+<script>
+(function() {
+    var role = localStorage.getItem('role') || 'guide';
+    var userId = localStorage.getItem('userId') || '';
+    var roleKey = (role && userId) ? ('profileImage:' + role + ':' + userId) : '';
+    var src = (roleKey ? localStorage.getItem(roleKey) : null) || localStorage.getItem('profileImage');
+    if (src) {
+        var img = document.getElementById('guideProfilePic');
+        if (img) img.src = src;
+        var navPic = document.getElementById('guideNavProfilePic');
+        if (navPic) navPic.src = src;
+    }
+})();
+// Dropdown: same as tourist (profile in top right)
+(function() {
+    var btn = document.getElementById('guideNavProfilePic');
+    var menu = document.getElementById('guideNavDropdown');
+    if (btn && menu) {
+        btn.addEventListener('click', function(e) { e.stopPropagation(); menu.classList.toggle('show'); });
+        window.addEventListener('click', function() { menu.classList.remove('show'); });
+    }
+})();
+</script>
 </body>
 </html>

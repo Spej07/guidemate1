@@ -58,15 +58,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 6. Role-based insertion into specific profile tables
         if ($role === 'guide') {
-            // Insert into tour_guides table
-            $stmt2 = $mysqli->prepare("INSERT INTO tour_guides (user_id, first_name, last_name, email, phone_number) VALUES (?, ?, ?, ?, ?)");
-            $stmt2->bind_param('issss', $user_id, $first_name, $last_name, $email, $contact);
+            // Insert into tour_guides (include status if column exists so admin can add guide to landing page)
+            $hasStatus = $mysqli->query("SHOW COLUMNS FROM tour_guides LIKE 'status'");
+            $hasStatus = $hasStatus && $hasStatus->num_rows > 0;
+            if ($hasStatus) {
+                $status = 'Pending';
+                $stmt2 = $mysqli->prepare("INSERT INTO tour_guides (user_id, first_name, last_name, email, phone_number, status) VALUES (?, ?, ?, ?, ?, ?)");
+                if ($stmt2) {
+                    $stmt2->bind_param('isssss', $user_id, $first_name, $last_name, $email, $contact, $status);
+                }
+            }
+            if (!isset($stmt2) || !$stmt2) {
+                $stmt2 = $mysqli->prepare("INSERT INTO tour_guides (user_id, first_name, last_name, email, phone_number) VALUES (?, ?, ?, ?, ?)");
+                if ($stmt2) {
+                    $stmt2->bind_param('issss', $user_id, $first_name, $last_name, $email, $contact);
+                }
+            }
         } else {
             // Default: Insert into tourists table
             $stmt2 = $mysqli->prepare("INSERT INTO tourists (user_id, first_name, last_name, email, phone_number) VALUES (?, ?, ?, ?, ?)");
-            $stmt2->bind_param('issss', $user_id, $first_name, $last_name, $email, $contact);
+            if ($stmt2) {
+                $stmt2->bind_param('issss', $user_id, $first_name, $last_name, $email, $contact);
+            }
         }
-        
+
+        if (!$stmt2) {
+            handleError($mysqli, "Database error. If you added the guide approval feature, run migrate_guide_status.php once.");
+        }
         $stmt2->execute();
         
         // 7. Everything worked, save changes to database permanently

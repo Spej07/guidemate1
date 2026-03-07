@@ -137,6 +137,114 @@
     color: #2d76f9;
 }
 
+.quick-nav-note {
+    color: #5a6a85;
+    margin: 0 0 14px;
+    font-size: 14px;
+}
+
+.spot-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.quick-nav-empty {
+    color: #5a6a85;
+    font-size: 14px;
+}
+
+.nearby-attractions-section {
+    margin-top: 26px;
+    background: #fff;
+    border: 1px solid #e0e6ed;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 8px 24px rgba(22, 34, 51, 0.06);
+}
+
+.nearby-attractions-header h3 {
+    margin: 0 0 6px;
+    color: #22324d;
+}
+
+.nearby-attractions-header p {
+    margin: 0 0 18px;
+    color: #5a6a85;
+    font-size: 14px;
+}
+
+.nearby-attractions-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.nearby-attraction-card {
+    border: 1px solid #e3e9f3;
+    border-radius: 16px;
+    padding: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.nearby-attraction-card h4 {
+    margin: 0 0 8px;
+    color: #22324d;
+    font-size: 16px;
+}
+
+.nearby-attraction-meta {
+    margin: 0 0 8px;
+    color: #2d76f9;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.nearby-attraction-address,
+.nearby-attraction-description {
+    margin: 0 0 10px;
+    color: #5a6a85;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.nearby-attraction-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.nearby-attraction-btn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.nearby-attraction-btn.primary {
+    background: #2d76f9;
+    color: #fff;
+}
+
+.nearby-attraction-btn.secondary {
+    background: #eef4ff;
+    color: #2d76f9;
+}
+
+.nearby-attraction-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(45, 118, 249, 0.16);
+}
+
+.nearby-empty-state {
+    color: #5a6a85;
+    font-size: 14px;
+    padding: 8px 0;
+}
+
 /* --- Map & UI Elements --- */
 #map {
     height: 500px;

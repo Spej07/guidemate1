@@ -1,5 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // --- 1. User Profile Setup ---
+document.addEventListener("DOMContentLoaded", async () => {
     const navName = document.getElementById("navProfileName");
     if (navName) {
         const firstName = localStorage.getItem("firstName") || "Guest";
@@ -7,164 +6,407 @@ document.addEventListener("DOMContentLoaded", () => {
         navName.textContent = `${firstName} ${lastName}`;
     }
 
-    // --- 2. Map & Routing Initialization ---
-    const map = L.map('map').setView([10.2936, 123.9019], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
+    const map = L.map("map").setView([10.2936, 123.9019], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap"
     }).addTo(map);
 
     const routingControl = L.Routing.control({
         waypoints: [],
         lineOptions: {
-            styles: [{ color: '#2d76f9', weight: 6 }]
+            styles: [{ color: "#2d76f9", weight: 6 }]
         },
         routeWhileDragging: false,
         addWaypoints: false,
-        show: false 
+        show: false
     }).addTo(map);
 
-    // --- 3. Data & Markers ---
-    const spots = [
-        { name: "Magellan's Cross", coords: [10.2936, 123.9019], image: "photos/magellans-cross.jpg" },
-        { name: "Taoist Temple", coords: [10.3344, 123.8884], image: "photos/taoist-temple.jpg" },
-        { name: "Fort San Pedro", coords: [10.2923, 123.9059], image: "photos/fort-san-pedro.jpg" },
-        { name: "10,000 Roses", coords: [10.3526, 123.9531], image: "photos/10k-roses.jpg" }
-    ];
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const historyDropdown = document.getElementById("searchHistory");
+    const quickNavChips = document.getElementById("quickNavChips");
+    const nearbyAttractionsList = document.getElementById("nearbyAttractionsList");
 
-    const markers = {};
+    const isFile = typeof window !== "undefined" && window.location && window.location.protocol === "file:";
+    const spotsEndpoint = isFile ? "http://localhost/guidemate1/get_spots.php" : "get_spots.php";
 
-    // Create markers and store them in an object for easy access
-    spots.forEach(spot => {
-        const popupContent = `
-            <div style="text-align: center; width: 150px;">
-                <b style="font-size: 14px;">${spot.name}</b><br>
-                <img src="${spot.image}" 
-                     alt="${spot.name}" 
-                     onerror="this.src='https://via.placeholder.com/150?text=No+Image'" 
-                     style="width: 100%; border-radius: 8px; margin-top: 5px;">
-            </div>
-        `;
-        const marker = L.marker(spot.coords).addTo(map).bindPopup(popupContent);
-        markers[spot.name.toLowerCase()] = marker;
-    });
-
-    // --- 4. Search & History Logic ---
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const historyDropdown = document.getElementById('searchHistory');
-
+    let spots = [];
     let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
+    const markers = {};
+    let currentLocationMarker = null;
+    let currentCoords = null;
 
-    const performSearch = (query = searchInput.value) => {
-        if (!query.trim()) return;
-        
-        const lowerQuery = query.toLowerCase().trim();
-        const found = spots.find(s => s.name.toLowerCase().includes(lowerQuery));
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+    }[char]));
 
-        if (found) {
-            // Move map and open the popup
-            map.flyTo(found.coords, 15);
-            
-            setTimeout(() => {
-                markers[found.name.toLowerCase()].openPopup();
-            }, 300);
+    const clearMarkers = () => {
+        Object.keys(markers).forEach((key) => {
+            map.removeLayer(markers[key]);
+            delete markers[key];
+        });
+    };
 
-            // Update search history UI and LocalStorage
-            updateHistory(found.name);
-            historyDropdown.style.display = 'none';
-            searchInput.value = found.name;
-        } else {
-            alert("Location not found. Try 'Magellan' or 'Temple'.");
+    const hasCoordinates = (spot) => Number.isFinite(Number(spot.latitude)) && Number.isFinite(Number(spot.longitude));
+    const getMarkerKey = (spot) => spot.destinationId
+        ? `destination-${spot.destinationId}`
+        : `${String(spot.name || "").toLowerCase()}-${spot.latitude}-${spot.longitude}`;
+
+    const formatDistance = (distanceKm) => {
+        if (distanceKm < 1) {
+            return `${Math.round(distanceKm * 1000)} m away`;
+        }
+        return `${distanceKm.toFixed(1)} km away`;
+    };
+
+    const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
+        const toRadians = (value) => value * (Math.PI / 180);
+        const earthRadiusKm = 6371;
+        const dLat = toRadians(lat2 - lat1);
+        const dLon = toRadians(lon2 - lon1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+            + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2))
+            * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return earthRadiusKm * c;
+    };
+
+    const buildPopupContent = (spot) => `
+        <div style="text-align: center; width: 170px;">
+            <b style="font-size: 14px;">${escapeHtml(spot.name)}</b><br>
+            <img src="${escapeHtml(spot.image || "photos/default.jpg")}"
+                 alt="${escapeHtml(spot.name)}"
+                 onerror="this.src='https://via.placeholder.com/150?text=No+Image'"
+                 style="width: 100%; border-radius: 8px; margin-top: 5px;">
+            ${spot.address ? `<div style="font-size: 12px; color: #5a6a85; margin-top: 6px;">${escapeHtml(spot.address)}</div>` : ""}
+            <div style="font-size: 12px; color: #5a6a85; margin-top: 6px;">Search or tap quick nav to route here.</div>
+        </div>
+    `;
+
+    const openSpot = (spot) => {
+        map.flyTo(spot.coords, 15);
+        const marker = markers[spot.markerKey];
+        if (marker) {
+            setTimeout(() => marker.openPopup(), 300);
         }
     };
 
-    const updateHistory = (name) => {
-        // Keeps the last 5 unique searches
-        history = [name, ...history.filter(item => item !== name)].slice(0, 5);
-        localStorage.setItem("searchHistory", JSON.stringify(history));
-        renderHistory();
+    const renderNearbyAttractions = () => {
+        if (!nearbyAttractionsList) {
+            return;
+        }
+
+        if (!spots.length) {
+            nearbyAttractionsList.innerHTML = '<div class="nearby-empty-state">No attractions with saved coordinates are available yet.</div>';
+            return;
+        }
+
+        if (!currentCoords) {
+            nearbyAttractionsList.innerHTML = '<div class="nearby-empty-state">Tap My Current Location to view the nearest attractions.</div>';
+            return;
+        }
+
+        const rankedSpots = spots
+            .map((spot) => ({
+                ...spot,
+                distanceKm: calculateDistanceKm(
+                    currentCoords[0],
+                    currentCoords[1],
+                    spot.coords[0],
+                    spot.coords[1]
+                )
+            }))
+            .sort((a, b) => a.distanceKm - b.distanceKm)
+            .slice(0, 6);
+
+        nearbyAttractionsList.innerHTML = rankedSpots.map((spot) => `
+            <article class="nearby-attraction-card">
+                <h4>${escapeHtml(spot.name)}</h4>
+                <p class="nearby-attraction-meta">${formatDistance(spot.distanceKm)}</p>
+                <p class="nearby-attraction-address">${escapeHtml(spot.address || "Address not available")}</p>
+                <p class="nearby-attraction-description">${escapeHtml(spot.description || "Explore this nearby attraction on the map.")}</p>
+                <div class="nearby-attraction-actions">
+                    <button type="button" class="nearby-attraction-btn secondary" data-action="view" data-marker-key="${escapeHtml(spot.markerKey)}">View</button>
+                    <button type="button" class="nearby-attraction-btn primary" data-action="route" data-marker-key="${escapeHtml(spot.markerKey)}">Route</button>
+                </div>
+            </article>
+        `).join("");
+
+        nearbyAttractionsList.querySelectorAll(".nearby-attraction-btn").forEach((button) => {
+            button.addEventListener("click", () => {
+                const markerKey = button.getAttribute("data-marker-key");
+                const selectedSpot = spots.find((spot) => spot.markerKey === markerKey);
+                if (!selectedSpot) {
+                    return;
+                }
+                if (button.getAttribute("data-action") === "route") {
+                    selectSpot(selectedSpot, true);
+                } else {
+                    selectSpot(selectedSpot, false);
+                }
+            });
+        });
+    };
+
+    const getMatchingSpots = (query) => {
+        const lowerQuery = query.toLowerCase().trim();
+        if (!lowerQuery) {
+            return [];
+        }
+
+        return spots
+            .filter((spot) => spot.name.toLowerCase().includes(lowerQuery))
+            .slice(0, 6);
+    };
+
+    const renderDropdown = (items, mode) => {
+        historyDropdown.innerHTML = "";
+
+        if (!items.length) {
+            historyDropdown.style.display = "none";
+            return;
+        }
+
+        items.forEach((item) => {
+            const row = document.createElement("div");
+            row.className = "history-item";
+
+            const icon = document.createElement("i");
+            icon.className = mode === "history" ? "bx bx-history" : "bx bx-map";
+
+            const label = document.createElement("span");
+            label.textContent = mode === "history" ? item : item.name;
+
+            row.appendChild(icon);
+            row.appendChild(label);
+
+            row.addEventListener("click", () => {
+                if (mode === "history") {
+                    performSearch(item);
+                } else {
+                    selectSpot(item, true);
+                }
+            });
+
+            historyDropdown.appendChild(row);
+        });
+
+        historyDropdown.style.display = "block";
     };
 
     const renderHistory = () => {
-        if (history.length === 0) {
-            historyDropdown.style.display = 'none';
+        renderDropdown(history, "history");
+    };
+
+    const renderSuggestions = (query) => {
+        const matches = getMatchingSpots(query);
+        renderDropdown(matches, "suggestions");
+    };
+
+    const updateHistory = (name) => {
+        history = [name, ...history.filter((item) => item !== name)].slice(0, 5);
+        localStorage.setItem("searchHistory", JSON.stringify(history));
+    };
+
+    const selectSpot = (spot, shouldRoute) => {
+        searchInput.value = spot.name;
+        updateHistory(spot.name);
+        openSpot(spot);
+        historyDropdown.style.display = "none";
+
+        if (shouldRoute) {
+            window.getRouteTo(spot.coords[0], spot.coords[1]);
+        }
+    };
+
+    const performSearch = (query = searchInput.value) => {
+        if (!query.trim()) {
             return;
         }
-        historyDropdown.innerHTML = history.map(item => `
-            <div class="history-item"><i class='bx bx-history'></i><span>${item}</span></div>
-        `).join('');
 
-        // Attach clicks to history items
-        document.querySelectorAll('.history-item').forEach(item => {
-            item.onclick = () => performSearch(item.querySelector('span').innerText);
+        if (!spots.length) {
+            alert("Spots are still loading. Please try again in a moment.");
+            return;
+        }
+
+        const lowerQuery = query.toLowerCase().trim();
+        const found = spots.find((spot) => spot.name.toLowerCase() === lowerQuery)
+            || spots.find((spot) => spot.name.toLowerCase().includes(lowerQuery));
+
+        if (found) {
+            selectSpot(found, true);
+        } else {
+            alert("Location not found. Try searching the exact spot name.");
+        }
+    };
+
+    const renderQuickNav = () => {
+        quickNavChips.innerHTML = "";
+
+        if (!spots.length) {
+            const emptyState = document.createElement("span");
+            emptyState.className = "quick-nav-empty";
+            emptyState.textContent = "No routable spots available yet.";
+            quickNavChips.appendChild(emptyState);
+            return;
+        }
+
+        spots.slice(0, 8).forEach((spot) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "chip";
+            chip.textContent = `📍 ${spot.name}`;
+            chip.addEventListener("click", () => selectSpot(spot, true));
+            quickNavChips.appendChild(chip);
         });
     };
 
-    // Event Listeners
-    if (searchBtn) searchBtn.addEventListener('click', () => performSearch());
+    const loadSpots = async () => {
+        try {
+            const response = await fetch(spotsEndpoint, { credentials: "same-origin" });
+            if (!response.ok) {
+                throw new Error(`get_spots failed: ${response.status}`);
+            }
+
+            const data = await response.json();
+            spots = Array.isArray(data)
+                ? data
+                    .filter(hasCoordinates)
+                    .map((spot) => ({
+                        ...spot,
+                        markerKey: getMarkerKey(spot),
+                        latitude: Number(spot.latitude),
+                        longitude: Number(spot.longitude),
+                        coords: [Number(spot.latitude), Number(spot.longitude)]
+                    }))
+                : [];
+
+            clearMarkers();
+            spots.forEach((spot) => {
+                const marker = L.marker(spot.coords).addTo(map).bindPopup(buildPopupContent(spot));
+                markers[spot.markerKey] = marker;
+            });
+
+            renderQuickNav();
+            renderNearbyAttractions();
+        } catch (error) {
+            console.error("Failed to load navigation spots:", error);
+            if (quickNavChips) {
+                quickNavChips.innerHTML = '<span class="quick-nav-empty">Could not load spots right now.</span>';
+            }
+            if (nearbyAttractionsList) {
+                nearbyAttractionsList.innerHTML = '<div class="nearby-empty-state">Could not load nearby attractions right now.</div>';
+            }
+        }
+    };
+
+    if (searchBtn) {
+        searchBtn.addEventListener("click", () => performSearch());
+    }
 
     if (searchInput) {
-        searchInput.addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter') performSearch(); 
+        searchInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                performSearch();
+            }
         });
-        
-        searchInput.addEventListener('focus', () => { 
-            if (history.length > 0) historyDropdown.style.display = 'block'; 
+
+        searchInput.addEventListener("focus", () => {
+            if (searchInput.value.trim()) {
+                renderSuggestions(searchInput.value);
+            } else if (history.length > 0) {
+                renderHistory();
+            }
+        });
+
+        searchInput.addEventListener("input", () => {
+            const query = searchInput.value.trim();
+            if (query) {
+                renderSuggestions(query);
+            } else if (history.length > 0) {
+                renderHistory();
+            } else {
+                historyDropdown.style.display = "none";
+            }
         });
     }
 
-    // Close history when clicking outside
-    document.addEventListener('click', (e) => {
-        const container = document.querySelector('.search-box-container');
+    document.addEventListener("click", (e) => {
+        const container = document.querySelector(".search-box-container");
         if (container && !container.contains(e.target)) {
-            historyDropdown.style.display = 'none';
+            historyDropdown.style.display = "none";
         }
     });
 
-    // --- 5. Navigation & Helper Functions ---
     window.getLocation = function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                map.flyTo([lat, lng], 16);
-                L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
-            }, () => alert("Please enable GPS to find your location."));
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported on this device.");
+            return;
         }
+
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            currentCoords = [lat, lng];
+
+            if (currentLocationMarker) {
+                map.removeLayer(currentLocationMarker);
+            }
+
+            currentLocationMarker = L.marker([lat, lng]).addTo(map).bindPopup("You are here");
+            map.flyTo([lat, lng], 16);
+            currentLocationMarker.openPopup();
+            renderNearbyAttractions();
+        }, () => alert("Please enable GPS to find your location."));
     };
 
     window.getRouteTo = function(destLat, destLng) {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                routingControl.setWaypoints([
-                    L.latLng(pos.coords.latitude, pos.coords.longitude),
-                    L.latLng(destLat, destLng)
-                ]);
-
-                map.flyTo([destLat, destLng], 14);
-
-                // Auto-open destination popup
-                setTimeout(() => {
-                    const key = Object.keys(markers).find(k => {
-                        const m = markers[k].getLatLng();
-                        return m.lat === destLat && m.lng === destLng;
-                    });
-                    if (key) markers[key].openPopup();
-                }, 1000);
-            }, () => alert("Please enable GPS for routing."));
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported on this device.");
+            return;
         }
+
+        navigator.geolocation.getCurrentPosition((pos) => {
+            const destination = [Number(destLat), Number(destLng)];
+            routingControl.setWaypoints([
+                L.latLng(pos.coords.latitude, pos.coords.longitude),
+                L.latLng(destination[0], destination[1])
+            ]);
+
+            map.flyTo(destination, 14);
+
+            setTimeout(() => {
+                const targetSpot = spots.find((spot) =>
+                    Math.abs(spot.coords[0] - destination[0]) < 0.000001
+                    && Math.abs(spot.coords[1] - destination[1]) < 0.000001
+                );
+
+                if (targetSpot && markers[targetSpot.markerKey]) {
+                    markers[targetSpot.markerKey].openPopup();
+                }
+            }, 700);
+        }, () => alert("Please enable GPS for routing."));
     };
 
-    // Logout
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
         logoutBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            localStorage.clear();
-            window.location.href = "landingpage.html";
+            if (typeof showLogoutConfirm === "function") {
+                showLogoutConfirm(function() {
+                    localStorage.clear();
+                    window.location.href = "landingpage.html";
+                }, "Sign out? Yes or No");
+            } else {
+                localStorage.clear();
+                window.location.href = "landingpage.html";
+            }
         });
     }
 
-    renderHistory();
+    await loadSpots();
 });

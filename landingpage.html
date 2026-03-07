@@ -50,8 +50,13 @@
 </section>
 
 <section class="explore">
-    <h2 id="sectionTitle">Popular Locations</h2>
-    <div class="card-container" id="cardsContainer"></div>
+    <h2 class="explore-heading" id="sectionTitle">Explore experiences near Cebu City</h2>
+    <p class="explore-subtitle">Can't-miss picks near you</p>
+    <div class="explore-scroll-wrap">
+        <button type="button" class="scroll-arrow scroll-arrow-left" id="scrollLeft" aria-label="Previous spots">←</button>
+        <div class="card-container" id="cardsContainer"></div>
+        <button type="button" class="scroll-arrow scroll-arrow-right" id="scrollRight" aria-label="Next spots">→</button>
+    </div>
     <div class="see-more-container">
         <a href="browse.html" class="see-more-btn">See More</a>
     </div>
@@ -71,6 +76,7 @@
 </section>
 
 
+<script src="logout_modal.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

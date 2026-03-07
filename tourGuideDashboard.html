@@ -20,7 +20,7 @@
             </span>
         </div>
         <div style="font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 10px; display: flex; align-items: center;">
-            <img src="photos/vince.jfif" alt="Guide Profile" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+            <img id="guideProfilePic" src="photos/default.jpg" alt="Guide Profile" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
             Guide: <b>John Lloyd Noya</b>
         </div>
     </nav>
@@ -76,14 +76,26 @@
 
     </div>
 
+    <script src="logout_modal.js"></script>
     <script>
         feather.replace();
-
+        (function() {
+            var img = document.getElementById('guideProfilePic');
+            if (img) {
+                var role = localStorage.getItem('role') || 'guide';
+                var userId = localStorage.getItem('userId') || '';
+                var roleKey = (role && userId) ? ('profileImage:' + role + ':' + userId) : '';
+                var src = (roleKey ? localStorage.getItem(roleKey) : null) || localStorage.getItem('profileImage');
+                if (src) img.src = src;
+            }
+        })();
         function handleLogout() {
-            // Confirm with the user before logging out
-            if (confirm("Are you sure you want to log out, John Lloyd?")) {
-                // Redirect back to login page
-                window.location.href = "index.html"; 
+            if (typeof showLogoutConfirm === 'function') {
+                showLogoutConfirm(function() {
+                    window.location.href = "index.html";
+                });
+            } else {
+                window.location.href = "index.html";
             }
         }
     </script>

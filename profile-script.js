@@ -17,7 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function syncImages() {
-        const savedImage = localStorage.getItem("profileImage");
+        const role = localStorage.getItem("role") || "";
+        const userId = localStorage.getItem("userId") || "";
+        const roleKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
+        const savedImage = (roleKey ? localStorage.getItem(roleKey) : null) || localStorage.getItem("profileImage");
         if (savedImage && profilePics) {
             profilePics.forEach(img => img.src = savedImage);
         }
@@ -52,6 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const result = e.target.result;
+                    const role = localStorage.getItem("role") || "";
+                    const userId = localStorage.getItem("userId") || "";
+                    if (role && userId) localStorage.setItem(`profileImage:${role}:${userId}`, result);
                     localStorage.setItem("profileImage", result);
                     profilePics.forEach(img => img.src = result);
                     if (typeof syncProfileData === "function") syncProfileData();
@@ -85,33 +91,66 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Logout (Sign out)
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (typeof showLogoutConfirm === 'function') {
+                showLogoutConfirm(function() {
+                    localStorage.removeItem("userLoggedIn");
+                    window.location.href = "landingpage.html";
+                }, 'Sign out? Yes or No');
+            } else {
+                localStorage.removeItem("userLoggedIn");
+                window.location.href = "landingpage.html";
+            }
+        });
+    }
+
     // 4. INITIALIZE REVIEW SYSTEM
-    initializeReviewTypeDropdown();
+    initializeReviewDropdowns();
     initializeProfileReviewForm();
 });
 
 // --- 5. REVIEW SYSTEM FUNCTIONS ---
 
-function initializeReviewTypeDropdown() {
-    const reviewTypeSelect = document.getElementById('reviewType');
-    const reviewSubjectSelect = document.getElementById('reviewSubject');
-    if (!reviewTypeSelect || !reviewSubjectSelect) return;
+async function initializeReviewDropdowns() {
+    const locationSelect = document.getElementById('reviewLocation');
+    const guideSelect = document.getElementById('reviewGuide');
+    if (!locationSelect || !guideSelect) return;
 
-    reviewTypeSelect.addEventListener('change', () => {
-        populateSubjectDropdown(reviewTypeSelect.value, reviewSubjectSelect);
-    });
+    let locations = Array.isArray(window.locationData) ? window.locationData : [];
+    let guides = Array.isArray(window.guideData) ? window.guideData : [];
+
+    if (locations.length === 0) {
+        try {
+            const res = await fetch('get_spots.php', { credentials: 'same-origin' });
+            const data = await res.json();
+            if (Array.isArray(data)) locations = data;
+        } catch (_) {}
+    }
+
+    if (guides.length === 0) {
+        try {
+            const res = await fetch('get_guides.php', { credentials: 'same-origin' });
+            const data = await res.json();
+            if (Array.isArray(data)) guides = data;
+        } catch (_) {}
+    }
+
+    populateDropdown(locationSelect, locations, 'Select a location');
+    populateDropdown(guideSelect, guides, 'Select a tour guide');
 }
 
-function populateSubjectDropdown(reviewType, selectElement) {
-    selectElement.innerHTML = '<option value="">Select a location or guide</option>';
-    
-    // Data pools from script.js
-    const dataPool = (reviewType === 'location') ? (window.locationData || []) : (reviewType === 'guide' ? (window.guideData || []) : []);
-    
-    dataPool.forEach(item => {
+function populateDropdown(selectElement, dataPool, placeholderText) {
+    selectElement.innerHTML = `<option value="">${placeholderText}</option>`;
+    (dataPool || []).forEach(item => {
+        const name = (item && item.name) ? item.name : [item?.first_name, item?.last_name].filter(Boolean).join(' ');
+        if (!name) return;
         const option = document.createElement('option');
-        option.value = item.name;
-        option.textContent = item.name;
+        option.value = name;
+        option.textContent = name;
         selectElement.appendChild(option);
     });
 }
@@ -124,43 +163,67 @@ function initializeProfileReviewForm() {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const reviewType = document.getElementById('reviewType').value;
-        const reviewSubject = document.getElementById('reviewSubject').value.trim();
+        const reviewType = document.getElementById('reviewType').value.trim();
+        const locationName = document.getElementById('reviewLocation').value.trim();
+        const guideName = document.getElementById('reviewGuide').value.trim();
         const rating = document.querySelector('input[name="tourRating"]:checked')?.value;
         const comment = document.getElementById('tourReviewComment').value.trim();
 
-        if (!reviewType || !reviewSubject || !rating || !comment) {
+        if (!reviewType || !locationName || !guideName || !rating || !comment) {
             showProfileMessage('Please fill in all fields.', 'error', messageDiv);
             return;
         }
 
         const currentFullName = localStorage.getItem("fullName") || "Guest Traveler";
 
-        const newReview = {
-            id: Date.now(),
-            name: currentFullName, // This is what the guide will see as "Tourist Name"
-            type: reviewType,
-            subject: reviewSubject,
-            rating: parseInt(rating),
-            comment: comment,
-            date: new Date().toLocaleDateString()
-        };
+        fetch('submit_review.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                review_type: reviewType,
+                location_name: locationName,
+                guide_name: guideName,
+                rating: parseInt(rating, 10),
+                comment: comment
+            })
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (!data.success) {
+                    showProfileMessage(data.message || 'Could not submit review.', 'error', messageDiv);
+                    return;
+                }
 
-        // Standardized Storage Key
-        let userReviews = JSON.parse(localStorage.getItem('userReviews')) || [];
-        userReviews.unshift(newReview); // Newest first
-        localStorage.setItem('userReviews', JSON.stringify(userReviews));
+                const newReview = {
+                    id: Date.now(),
+                    name: currentFullName,
+                    review_type: reviewType,
+                    location_name: locationName,
+                    guide_name: guideName,
+                    rating: parseInt(rating, 10),
+                    comment: comment,
+                    date: new Date().toLocaleDateString()
+                };
 
-        showProfileMessage('Review submitted successfully! Your guide can now see it.', 'success', messageDiv);
-        form.reset();
-        loadUserReviews();
+                let userReviews = JSON.parse(localStorage.getItem('userReviews')) || [];
+                userReviews.unshift(newReview);
+                localStorage.setItem('userReviews', JSON.stringify(userReviews));
 
-        setTimeout(() => {
-            if (messageDiv) {
-                messageDiv.textContent = '';
-                messageDiv.classList.remove('success', 'error');
-            }
-        }, 3000);
+                showProfileMessage('Review submitted successfully! It is now visible to the guide and admin.', 'success', messageDiv);
+                form.reset();
+                loadUserReviews();
+
+                setTimeout(() => {
+                    if (messageDiv) {
+                        messageDiv.textContent = '';
+                        messageDiv.classList.remove('success', 'error');
+                    }
+                }, 3000);
+            })
+            .catch(() => {
+                showProfileMessage('Request failed. Please try again.', 'error', messageDiv);
+            });
     });
 }
 
@@ -178,13 +241,14 @@ function loadUserReviews() {
     userReviews.forEach(review => {
         const reviewElement = document.createElement('div');
         reviewElement.classList.add('review-item');
+        const reviewType = review.review_type || 'location';
+        const locationName = review.location_name || review.subject || 'Unknown location';
+        const guideName = review.guide_name || 'Unknown guide';
         reviewElement.innerHTML = `
             <div class="review-item-header">
-                <div class="review-item-title">${review.subject}</div>
-                <span class="review-item-type" style="background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">
-                    ${review.type.toUpperCase()}
-                </span>
+                <div class="review-item-title">${locationName}</div>
             </div>
+            <div style="font-size: 0.8rem; color: #666; margin-bottom: 4px;">Type: ${reviewType.toUpperCase()} · Guide: ${guideName}</div>
             <div class="review-item-rating" style="color: #fcc419; margin: 4px 0;">${'★'.repeat(review.rating)}</div>
             <div class="review-item-text" style="margin-bottom: 5px;">${review.comment}</div>
             <small style="color: #999;">Submitted on ${review.date}</small>

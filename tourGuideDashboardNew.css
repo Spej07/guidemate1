@@ -21,3 +21,10 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
         .review-item:last-child { border-bottom: none; }
+
+        /* Tour guide profile block: centered, constrained width */
+        .tour-guide-profile-block {
+            max-width: 560px;
+            margin-left: auto;
+            margin-right: auto;
+        }
