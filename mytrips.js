@@ -18,20 +18,61 @@
     const filterTabs = document.querySelectorAll('.filter-tab');
     const toast = document.getElementById('toastMessage');
     const profileNameEl = document.getElementById('navProfileName');
+    const profileAvatarEl = document.querySelector('.nav-avatar');
 
     // --- 1. User Data Initialization ---
-    async function initUserData() {
-        try {
-            const response = await fetch('get_user.php');
-            const data = await response.json();
-            
-            if (data.success && profileNameEl) {
-                // Sets name from DB (e.g., "lloyd noya")
-                profileNameEl.textContent = data.full_name;
-            }
-        } catch (error) {
-            console.error("Database connection error:", error);
+    function initUserData() {
+        if (!profileNameEl && !profileAvatarEl) {
+            return;
         }
+
+        const role = localStorage.getItem('role') || '';
+        const userId = localStorage.getItem('userId') || '';
+        const scopedFullName = (role && userId) ? localStorage.getItem(`profileName:${role}:${userId}`) : '';
+        const scopedFirstName = (role && userId) ? localStorage.getItem(`firstName:${role}:${userId}`) : '';
+        const scopedLastName = (role && userId) ? localStorage.getItem(`lastName:${role}:${userId}`) : '';
+        profileNameEl.textContent = scopedFullName || [scopedFirstName, scopedLastName].filter(Boolean).join(' ').trim() || localStorage.getItem('fullName') || 'Guest Traveler';
+
+        const scopedProfileImage = (role && userId) ? localStorage.getItem(`profileImage:${role}:${userId}`) : '';
+        if (profileAvatarEl && (scopedProfileImage || localStorage.getItem('profileImage'))) {
+            profileAvatarEl.src = scopedProfileImage || localStorage.getItem('profileImage');
+        }
+    }
+
+    async function hydrateUserDataFromSession() {
+        try {
+            const response = await fetch('get_user.php', { credentials: 'same-origin' });
+            if (!response.ok) {
+                return;
+            }
+
+            const data = await response.json();
+            if (!data || !data.success || !data.role || !data.user_id) {
+                return;
+            }
+
+            const role = String(data.role);
+            const userId = String(data.user_id);
+            const firstName = String(data.first_name || '');
+            const lastName = String(data.last_name || '');
+            const fullName = String(data.full_name || '').trim() || 'Guest Traveler';
+            const profileImage = String(data.profile_image || '');
+
+            localStorage.setItem('role', role);
+            localStorage.setItem('userId', userId);
+            localStorage.setItem('firstName', firstName);
+            localStorage.setItem('lastName', lastName);
+            localStorage.setItem('fullName', fullName);
+            localStorage.setItem(`firstName:${role}:${userId}`, firstName);
+            localStorage.setItem(`lastName:${role}:${userId}`, lastName);
+            localStorage.setItem(`profileName:${role}:${userId}`, fullName);
+            if (profileImage) {
+                localStorage.setItem(`profileImage:${role}:${userId}`, profileImage);
+                localStorage.setItem('profileImage', profileImage);
+            }
+
+            initUserData();
+        } catch (_) {}
     }
 
     // --- 2. Helper Functions ---
@@ -155,6 +196,7 @@
 
     // --- Initialize Page ---
     initUserData();
+    hydrateUserDataFromSession();
     renderTrips();
     setupEventListeners();
 

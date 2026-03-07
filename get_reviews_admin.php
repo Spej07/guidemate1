@@ -4,6 +4,7 @@
  */
 session_start();
 require_once 'dbconnect.php';
+require_once 'review_helpers.php';
 
 header('Content-Type: application/json');
 
@@ -14,8 +15,8 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 session_write_close();
 
-// All reviews: tourist name, guide/location, rating, comment, reply, date
-$sql = "SELECT r.review_id, r.tourist_id, r.guide_id, r.rating, r.comment, r.created_at,
+// All non-hidden reviews: tourist name, guide/location, rating, comment, reply, date
+$sql = "SELECT r.review_id, r.tourist_id, r.guide_id, r.rating, r.comment, r.status, r.created_at,
         t.first_name AS t_first, t.last_name AS t_last,
         g.first_name AS g_first, g.last_name AS g_last,
         rr.reply_text
@@ -23,6 +24,7 @@ $sql = "SELECT r.review_id, r.tourist_id, r.guide_id, r.rating, r.comment, r.cre
         LEFT JOIN tourists t ON t.tourist_id = r.tourist_id
         LEFT JOIN tour_guides g ON g.guide_id = r.guide_id
         LEFT JOIN review_replies rr ON rr.review_id = r.review_id AND rr.guide_id = r.guide_id
+        WHERE COALESCE(r.status, 'visible') <> 'hidden'
         ORDER BY r.created_at DESC";
 $result = $mysqli->query($sql);
 
@@ -39,23 +41,8 @@ if ($result) {
             if ($guideName === '') $guideName = 'Guide #' . $guideId;
         }
 
-        $rawComment = (string)($row['comment'] ?? '');
-        $locationName = '';
-        $displayComment = $rawComment;
-        $reviewType = 'location';
-        if (preg_match('/^Type:\s*(location|guide)\RLocation:\s*(.+?)\RReview:\s*(.*)$/si', $rawComment, $m)) {
-            $reviewType = strtolower(trim($m[1]));
-            $locationName = trim($m[2]);
-            $displayComment = trim($m[3]);
-        } elseif (preg_match('/^Location:\s*(.+?)\RReview:\s*(.*)$/s', $rawComment, $m)) {
-            $locationName = trim($m[1]);
-            $displayComment = trim($m[2]);
-        }
-
-        $subject = $guideName;
-        if ($locationName !== '') {
-            $subject .= ' @ ' . $locationName;
-        }
+        $parsed = gm_parse_review_comment($row['comment'] ?? '');
+        $subject = gm_review_subject($guideName, $parsed['location_name']);
 
         $reviews[] = [
             'review_id'   => (int)$row['review_id'],
@@ -63,10 +50,11 @@ if ($result) {
             'subject'     => $subject,
             'subject_type'=> 'guide',
             'guide_name'  => $guideName,
-            'location_name' => $locationName,
-            'review_type' => $reviewType,
+            'location_name' => $parsed['location_name'],
+            'review_type' => $parsed['review_type'],
             'rating'      => (int)$row['rating'],
-            'comment'     => $displayComment,
+            'comment'     => $parsed['comment'],
+            'status'      => (string)($row['status'] ?? 'visible'),
             'reply_text'  => $row['reply_text'] ?? null,
             'created_at'  => $row['created_at'],
         ];

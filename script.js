@@ -31,12 +31,24 @@ fetch('http://127.0.0.1:7921/ingest/b62290be-ce23-4956-ad93-971fb215c8cf',{metho
 // #endregion
 
 // --- 3. PROFILE SYNC LOGIC ---
-function syncProfileData() {
-    const savedName = localStorage.getItem("fullName") || "Guest Traveler";
+function getActiveProfileState() {
     const role = localStorage.getItem("role") || "";
     const userId = localStorage.getItem("userId") || "";
-    const roleKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
-    const savedPic = (roleKey ? localStorage.getItem(roleKey) : null) || localStorage.getItem("profileImage");
+    const scopedNameKey = (role && userId) ? `profileName:${role}:${userId}` : "";
+    const scopedImageKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
+
+    return {
+        role,
+        userId,
+        name: (scopedNameKey ? localStorage.getItem(scopedNameKey) : null) || localStorage.getItem("fullName") || "Guest Traveler",
+        image: (scopedImageKey ? localStorage.getItem(scopedImageKey) : null) || localStorage.getItem("profileImage") || ""
+    };
+}
+
+function syncProfileData() {
+    const profileState = getActiveProfileState();
+    const savedName = profileState.name;
+    const savedPic = profileState.image;
 
     const nameEl = document.getElementById("profileName");
     if (nameEl) nameEl.textContent = savedName;
@@ -48,6 +60,38 @@ function syncProfileData() {
     if (savedPic) {
         profileElements.forEach(img => { img.src = savedPic; });
     }
+}
+
+async function hydrateProfileDataFromSession() {
+    try {
+        const response = await fetch("get_user.php", { credentials: "same-origin" });
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (!data || !data.success || !data.role || !data.user_id) return;
+
+        const role = String(data.role);
+        const userId = String(data.user_id);
+        const firstName = String(data.first_name || "");
+        const lastName = String(data.last_name || "");
+        const fullName = String(data.full_name || "").trim() || "Guest Traveler";
+        const profileImage = String(data.profile_image || "");
+
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("role", role);
+        localStorage.setItem("firstName", firstName);
+        localStorage.setItem("lastName", lastName);
+        localStorage.setItem("fullName", fullName);
+        localStorage.setItem(`firstName:${role}:${userId}`, firstName);
+        localStorage.setItem(`lastName:${role}:${userId}`, lastName);
+        localStorage.setItem(`profileName:${role}:${userId}`, fullName);
+        if (profileImage) {
+            localStorage.setItem(`profileImage:${role}:${userId}`, profileImage);
+            localStorage.setItem("profileImage", profileImage);
+        }
+
+        syncProfileData();
+    } catch (_) {}
 }
 
 // --- 4. UI RENDERING FUNCTIONS ---
@@ -83,6 +127,7 @@ function displayCards(items) {
         const imgUrl = item.image || "photos/default-avatar.png";
         const rating = item.rating != null ? item.rating : 4.5;
         const reviewCount = (item.reviewCount != null) ? item.reviewCount : (item.review_count != null ? item.review_count : 0);
+        const isBooked = !!item.is_booked;
 
         // For locations: never show price/payment text; show only description (or fallback)
         if (currentType === "locations") {
@@ -118,10 +163,10 @@ function displayCards(items) {
                 <div class="card-content">
                     <div class="card-title-row">
                         <h3>${title}</h3>
-                        <button type="button" class="card-next-btn" aria-label="Next">→</button>
                     </div>
+                    ${renderRating(rating, reviewCount)}
                     <p class="card-desc">${desc}</p>
-                    <button class="book-btn" data-guide-id="${item.guide_id || ''}">Book Now</button>
+                    <button class="book-btn${isBooked ? ' is-booked' : ''}" data-guide-id="${item.guide_id || ''}" data-is-booked="${isBooked ? '1' : '0'}" ${isBooked ? 'disabled' : ''}>${isBooked ? 'Already Booked' : 'Book Now'}</button>
                 </div>
             `;
         }
@@ -133,11 +178,17 @@ function handleGuideBooking(button) {
     const guideId = parseInt(button.getAttribute("data-guide-id") || "0", 10);
     const card = button.closest(".card");
     const guideName = card && card.querySelector("h3") ? card.querySelector("h3").textContent.trim() : "this guide";
+    const isBooked = button.getAttribute("data-is-booked") === "1";
     const isLoggedIn = localStorage.getItem("userLoggedIn") === "true";
     const role = localStorage.getItem("role") || "";
 
     if (!guideId) {
         alert("This guide is not available for booking right now.");
+        return;
+    }
+
+    if (isBooked) {
+        alert("This guide has already been booked. Please choose another guide.");
         return;
     }
 
@@ -301,12 +352,14 @@ async function loadGuideData() {
         const response = await fetch('get_guides.php');
         const data = await response.json();
         // Set the global guideData variable
-        guideData = data;
+        guideData = Array.isArray(data)
+            ? data.map((item) => ({ ...item, is_booked: !!item.is_booked }))
+            : [];
     } catch (error) {
         console.error('Error loading guides from DB, using defaults:', error);
         guideData = [
-            { first_name: "Vince", last_name: "", username: "vince_trek", image: "photos/vince.jfif" },
-            { first_name: "Christian", last_name: "", username: "xtian_eats", image: "photos/christian.avif" }
+            { first_name: "Vince", last_name: "", username: "vince_trek", image: "photos/vince.jfif", is_booked: false },
+            { first_name: "Christian", last_name: "", username: "xtian_eats", image: "photos/christian.avif", is_booked: false }
         ];
     }
 }
@@ -340,6 +393,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     fetch('http://127.0.0.1:7921/ingest/b62290be-ce23-4956-ad93-971fb215c8cf',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'e8c76a'},body:JSON.stringify({sessionId:'e8c76a',runId:'pre-fix',hypothesisId:'A,B',location:'script.js:DOMContentLoaded',message:'DOMContentLoaded fired',data:{hasCardsContainer:!!document.getElementById('cardsContainer')},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
     syncProfileData(); 
+    hydrateProfileDataFromSession();
     initializeAuthButtons();
 
     if (container) {

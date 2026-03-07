@@ -76,7 +76,7 @@ $occupied = $occupiedResult ? $occupiedResult->fetch_assoc() : null;
 $occupiedStmt->close();
 
 if ($occupied) {
-    echo json_encode(['ok' => false, 'error' => 'This guide already has an approved booking.']);
+    echo json_encode(['ok' => false, 'error' => 'This guide has already been booked. Please choose another guide.']);
     exit;
 }
 

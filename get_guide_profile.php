@@ -48,8 +48,8 @@ $row = $result->fetch_assoc();
 $gid = (int)$row['guide_id'];
 $stmt->close();
 
-// Average rating and review count
-$ratingRow = $mysqli->query("SELECT COUNT(*) AS cnt, COALESCE(AVG(rating), 0) AS avg_rating FROM reviews WHERE guide_id = " . $gid);
+// Average rating and review count from active reviews only.
+$ratingRow = $mysqli->query("SELECT COUNT(*) AS cnt, COALESCE(AVG(rating), 0) AS avg_rating FROM reviews WHERE guide_id = " . $gid . " AND COALESCE(status, 'visible') <> 'hidden'");
 $review_count = 0;
 $avg_rating = 0;
 if ($ratingRow && $r = $ratingRow->fetch_assoc()) {

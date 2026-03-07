@@ -130,6 +130,13 @@ input:focus {
     box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
 }
 
+input:focus-visible,
+.primary-btn:focus-visible,
+.switch-link a:focus-visible {
+    outline: 3px solid rgba(13, 148, 136, 0.45);
+    outline-offset: 3px;
+}
+
 .primary-btn {
     width: 100%;
     background: var(--primary);

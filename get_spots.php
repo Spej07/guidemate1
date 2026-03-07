@@ -16,12 +16,24 @@ $col3 = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'latitude'");
 $hasLatitude = $col3 && $col3->num_rows > 0;
 $col4 = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'longitude'");
 $hasLongitude = $col4 && $col4->num_rows > 0;
+$colFacilities = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'facilities_services'");
+$hasFacilities = $colFacilities && $colFacilities->num_rows > 0;
+$colContact = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'contact_information'");
+$hasContact = $colContact && $colContact->num_rows > 0;
+$colCategory = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'categorization'");
+$hasCategory = $colCategory && $colCategory->num_rows > 0;
+$colMostVisited = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'is_most_visited'");
+$hasMostVisited = $colMostVisited && $colMostVisited->num_rows > 0;
 
 $select = "destination_id, name, description";
 if ($hasAddress) $select .= ", address";
 if ($hasImage) $select .= ", image";
 if ($hasRating) $select .= ", rating, review_count, price";
 if ($hasLatitude && $hasLongitude) $select .= ", latitude, longitude";
+if ($hasFacilities) $select .= ", facilities_services";
+if ($hasContact) $select .= ", contact_information";
+if ($hasCategory) $select .= ", categorization";
+if ($hasMostVisited) $select .= ", is_most_visited";
 
 $query = "SELECT $select FROM destinations ORDER BY created_at DESC";
 $result = $mysqli->query($query);
@@ -51,6 +63,10 @@ if ($result) {
             'price' => ($hasRating && isset($row['price']) && $row['price'] !== null && $row['price'] !== '') ? $row['price'] : '—',
             'latitude' => ($hasLatitude && isset($row['latitude']) && $row['latitude'] !== null) ? (float) $row['latitude'] : null,
             'longitude' => ($hasLongitude && isset($row['longitude']) && $row['longitude'] !== null) ? (float) $row['longitude'] : null,
+            'facilitiesServices' => ($hasFacilities && isset($row['facilities_services'])) ? ($row['facilities_services'] ?: '') : '',
+            'contactInformation' => ($hasContact && isset($row['contact_information'])) ? ($row['contact_information'] ?: '') : '',
+            'categorization' => ($hasCategory && isset($row['categorization'])) ? ($row['categorization'] ?: '') : '',
+            'isMostVisited' => ($hasMostVisited && isset($row['is_most_visited'])) ? (bool) $row['is_most_visited'] : false,
         ];
     }
 }

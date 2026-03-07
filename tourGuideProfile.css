@@ -284,3 +284,35 @@
     font-size: 0.85rem;
     padding: 8px 16px;
 }
+.guide-review-tools {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+.guide-report-review-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    background: #fff4e6;
+    color: #c05621;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.guide-report-review-btn:hover:not(:disabled) {
+    background: #ffe8cc;
+}
+.guide-report-review-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+.guide-review-flag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fff3bf;
+    color: #8d6b00;
+    font-size: 0.85rem;
+    font-weight: 600;
+}

@@ -13,6 +13,15 @@ a {
     color: inherit; 
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid #0d5c3d;
+    outline-offset: 3px;
+}
+
 /* ==========================================================================
    2. NAVIGATION BAR
    ========================================================================== */
@@ -160,6 +169,14 @@ a {
     cursor: pointer;
 }
 
+.sign-out-link {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font: inherit;
+}
+
 .dropdown-menu a:hover, .sign-out-link:hover { 
     background: #f5f5f5; 
 }
@@ -216,6 +233,11 @@ a {
     border-right: none;      
     border-radius: 25px 0 0 25px; 
     outline: none;
+}
+
+.search-bar input:focus {
+    border-color: #0d5c3d;
+    box-shadow: 0 0 0 3px rgba(13, 92, 61, 0.12);
 }
 
 
@@ -425,6 +447,17 @@ a {
     background: #008f5a;
 }
 
+.book-btn:disabled,
+.book-btn.is-booked {
+    background: #8a8f98;
+    cursor: not-allowed;
+}
+
+.book-btn:disabled:hover,
+.book-btn.is-booked:hover {
+    background: #8a8f98;
+}
+
 .scroll-arrow {
     position: absolute;
     top: 50%;
@@ -524,6 +557,76 @@ a {
     color: #555;
     line-height: 1.6;
     margin: 0;
+}
+
+/* ==========================================================================
+   5. FOOTER
+   ========================================================================== */
+.site-footer {
+    background: #0d5c3d;
+    color: #ffffff;
+    padding: 48px 60px 24px;
+    margin-top: 40px;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.footer-brand {
+    max-width: 460px;
+}
+
+.footer-brand h3 {
+    margin: 0 0 12px;
+    font-size: 1.5rem;
+}
+
+.footer-brand p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.7;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 24px;
+    justify-content: center;
+    align-items: center;
+}
+
+.footer-links a {
+    color: #ffffff;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.footer-links a:hover {
+    opacity: 0.8;
+}
+
+.footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    text-align: center;
+}
+
+.footer-bottom p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.95rem;
 }
 
 /* ==========================================================================
@@ -835,4 +938,73 @@ a {
     color: #555;
     line-height: 1.6;
     font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 15px 20px;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .navbar nav {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .nav-right,
+    .logo {
+        flex: initial;
+    }
+
+    .hero {
+        padding: 56px 20px;
+    }
+
+    .hero h1 {
+        font-size: 2.25rem;
+    }
+
+    .search-bar {
+        flex-direction: column;
+        max-width: 100%;
+        gap: 12px;
+    }
+
+    .search-bar input,
+    .search-bar button {
+        width: 100%;
+        border-radius: 18px;
+        border-right: 1px solid #ccc;
+    }
+
+    .explore,
+    .reviews {
+        padding: 32px 20px;
+    }
+
+    .scroll-arrow {
+        display: none;
+    }
+
+    .review-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .site-footer {
+        padding: 36px 20px 20px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-links {
+        justify-content: center;
+    }
 }

@@ -253,6 +253,7 @@ function loadGuideReviews() {
                 var name = r.tourist_name || 'Tourist';
                 var stars = '★'.repeat(r.rating || 0);
                 var replyHtml = '';
+                var reviewStatus = (r.status || 'visible').toLowerCase();
                 if (r.reply_text) {
                     replyHtml = '<div class="guide-review-reply"><strong>Your reply:</strong> ' + escapeHtml(r.reply_text) + '</div>';
                 } else {
@@ -260,9 +261,12 @@ function loadGuideReviews() {
                         '<textarea class="guide-reply-input" placeholder="Write a reply…" rows="2"></textarea>' +
                         '<button type="button" class="profile-submit-btn guide-reply-btn">Respond</button></div>';
                 }
+                var reportHtml = reviewStatus === 'reported'
+                    ? '<div class="guide-review-tools"><span class="guide-review-flag">Reported to admin</span></div>'
+                    : '<div class="guide-review-tools"><button type="button" class="guide-report-review-btn" data-review-id="' + r.review_id + '">Report review</button></div>';
                 return '<div class="guide-review-item" data-review-id="' + r.review_id + '">' +
                     '<div class="guide-review-header">' + escapeHtml(name) + ' · ' + stars + ' ' + (r.rating || '') + '</div>' +
-                    '<p class="guide-review-comment">' + escapeHtml(r.comment || '') + '</p>' + replyHtml + '</div>';
+                    '<p class="guide-review-comment">' + escapeHtml(r.comment || '') + '</p>' + replyHtml + reportHtml + '</div>';
             }).join('');
             list.querySelectorAll('.guide-reply-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
@@ -280,6 +284,33 @@ function loadGuideReviews() {
                         .then(function(res) { return res.json(); })
                         .then(function(result) {
                             if (result.ok) loadGuideReviews();
+                        });
+                });
+            });
+            list.querySelectorAll('.guide-report-review-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var reviewId = this.getAttribute('data-review-id');
+                    if (!reviewId) return;
+                    this.disabled = true;
+                    this.textContent = 'Reporting…';
+                    fetch('mark_review_reported.php', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ review_id: parseInt(reviewId, 10) })
+                    })
+                        .then(function(res) { return res.json(); })
+                        .then(function(result) {
+                            if (result.ok) {
+                                loadGuideReviews();
+                                return;
+                            }
+                            btn.disabled = false;
+                            btn.textContent = 'Report review';
+                        })
+                        .catch(function() {
+                            btn.disabled = false;
+                            btn.textContent = 'Report review';
                         });
                 });
             });

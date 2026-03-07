@@ -1,10 +1,56 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const navName = document.getElementById("navProfileName");
+    const navAvatar = document.querySelector(".nav-avatar");
+    const role = localStorage.getItem("role") || "";
+    const userId = localStorage.getItem("userId") || "";
     if (navName) {
-        const firstName = localStorage.getItem("firstName") || "Guest";
-        const lastName = localStorage.getItem("lastName") || "Traveler";
-        navName.textContent = `${firstName} ${lastName}`;
+        const scopedFirstName = (role && userId) ? localStorage.getItem(`firstName:${role}:${userId}`) : "";
+        const scopedLastName = (role && userId) ? localStorage.getItem(`lastName:${role}:${userId}`) : "";
+        const scopedFullName = (role && userId) ? localStorage.getItem(`profileName:${role}:${userId}`) : "";
+        const displayName = scopedFullName || [scopedFirstName, scopedLastName].filter(Boolean).join(" ").trim() || localStorage.getItem("fullName") || "Guest Traveler";
+        navName.textContent = displayName;
     }
+    if (navAvatar) {
+        const scopedProfileImage = (role && userId) ? localStorage.getItem(`profileImage:${role}:${userId}`) : "";
+        if (scopedProfileImage || localStorage.getItem("profileImage")) {
+            navAvatar.src = scopedProfileImage || localStorage.getItem("profileImage");
+        }
+    }
+
+    try {
+        const response = await fetch("get_user.php", { credentials: "same-origin" });
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.success && data.role && data.user_id) {
+                const sessionRole = String(data.role);
+                const sessionUserId = String(data.user_id);
+                const sessionFirstName = String(data.first_name || "");
+                const sessionLastName = String(data.last_name || "");
+                const sessionFullName = String(data.full_name || "").trim() || "Guest Traveler";
+                const sessionProfileImage = String(data.profile_image || "");
+
+                localStorage.setItem("role", sessionRole);
+                localStorage.setItem("userId", sessionUserId);
+                localStorage.setItem("firstName", sessionFirstName);
+                localStorage.setItem("lastName", sessionLastName);
+                localStorage.setItem("fullName", sessionFullName);
+                localStorage.setItem(`firstName:${sessionRole}:${sessionUserId}`, sessionFirstName);
+                localStorage.setItem(`lastName:${sessionRole}:${sessionUserId}`, sessionLastName);
+                localStorage.setItem(`profileName:${sessionRole}:${sessionUserId}`, sessionFullName);
+
+                if (navName) {
+                    navName.textContent = sessionFullName;
+                }
+                if (sessionProfileImage) {
+                    localStorage.setItem(`profileImage:${sessionRole}:${sessionUserId}`, sessionProfileImage);
+                    localStorage.setItem("profileImage", sessionProfileImage);
+                    if (navAvatar) {
+                        navAvatar.src = sessionProfileImage;
+                    }
+                }
+            }
+        }
+    } catch (_) {}
 
     const map = L.map("map").setView([10.2936, 123.9019], 13);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {

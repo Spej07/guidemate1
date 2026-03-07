@@ -1,6 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
     // 1. INITIAL SYNC & SELECTORS
-    let fullName = localStorage.getItem("fullName") || "Guest Traveler";
+    const role = localStorage.getItem("role") || "";
+    const userId = localStorage.getItem("userId") || "";
+    const scopedNameKey = (role && userId) ? `profileName:${role}:${userId}` : "";
+    const scopedImageKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
+    let fullName = (scopedNameKey ? localStorage.getItem(scopedNameKey) : null) || localStorage.getItem("fullName") || "Guest Traveler";
     
     const profileName = document.getElementById("profileName");
     const profileHandle = document.getElementById("profileHandle");
@@ -17,18 +21,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function syncImages() {
-        const role = localStorage.getItem("role") || "";
-        const userId = localStorage.getItem("userId") || "";
-        const roleKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
-        const savedImage = (roleKey ? localStorage.getItem(roleKey) : null) || localStorage.getItem("profileImage");
+        const savedImage = (scopedImageKey ? localStorage.getItem(scopedImageKey) : null) || localStorage.getItem("profileImage");
         if (savedImage && profilePics) {
             profilePics.forEach(img => img.src = savedImage);
         }
     }
 
+    async function hydrateProfileFromSession() {
+        try {
+            const response = await fetch("get_user.php", { credentials: "same-origin" });
+            if (!response.ok) return;
+
+            const data = await response.json();
+            if (!data || !data.success) return;
+
+            const sessionRole = String(data.role || role);
+            const sessionUserId = String(data.user_id || userId);
+            const sessionFullName = String(data.full_name || "").trim() || "Guest Traveler";
+            const sessionFirstName = String(data.first_name || "");
+            const sessionLastName = String(data.last_name || "");
+            const sessionImage = String(data.profile_image || "");
+
+            localStorage.setItem("role", sessionRole);
+            localStorage.setItem("userId", sessionUserId);
+            localStorage.setItem("firstName", sessionFirstName);
+            localStorage.setItem("lastName", sessionLastName);
+            localStorage.setItem("fullName", sessionFullName);
+            localStorage.setItem(`firstName:${sessionRole}:${sessionUserId}`, sessionFirstName);
+            localStorage.setItem(`lastName:${sessionRole}:${sessionUserId}`, sessionLastName);
+            localStorage.setItem(`profileName:${sessionRole}:${sessionUserId}`, sessionFullName);
+            if (sessionImage) {
+                localStorage.setItem(`profileImage:${sessionRole}:${sessionUserId}`, sessionImage);
+                localStorage.setItem("profileImage", sessionImage);
+            }
+
+            fullName = sessionFullName;
+            updateDisplay(sessionFullName);
+            syncImages();
+            if (typeof syncProfileData === "function") syncProfileData();
+        } catch (_) {}
+    }
+
     // Run initial display sync
     updateDisplay(fullName);
     syncImages();
+    hydrateProfileFromSession();
 
     // 2. PROFILE EDITING LOGIC
     if (editBtn) {
@@ -37,8 +74,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const newName = prompt("Enter your new full name:", currentName);
             
             if (newName && newName.trim() !== "") {
-                localStorage.setItem("fullName", newName);
-                updateDisplay(newName);
+                fullName = newName.trim();
+                const nameParts = fullName.split(/\s+/);
+                const firstName = nameParts.shift() || "";
+                const lastName = nameParts.join(" ");
+                if (scopedNameKey) localStorage.setItem(scopedNameKey, fullName);
+                if (role && userId) {
+                    localStorage.setItem(`firstName:${role}:${userId}`, firstName);
+                    localStorage.setItem(`lastName:${role}:${userId}`, lastName);
+                }
+                localStorage.setItem("firstName", firstName);
+                localStorage.setItem("lastName", lastName);
+                localStorage.setItem("fullName", fullName);
+                updateDisplay(fullName);
                 if (typeof syncProfileData === "function") syncProfileData();
 
                 if(confirm("Would you also like to change your profile picture?")) {
@@ -55,9 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const result = e.target.result;
-                    const role = localStorage.getItem("role") || "";
-                    const userId = localStorage.getItem("userId") || "";
-                    if (role && userId) localStorage.setItem(`profileImage:${role}:${userId}`, result);
+                    if (scopedImageKey) localStorage.setItem(scopedImageKey, result);
                     localStorage.setItem("profileImage", result);
                     profilePics.forEach(img => img.src = result);
                     if (typeof syncProfileData === "function") syncProfileData();
@@ -96,14 +142,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            if (typeof showLogoutConfirm === 'function') {
-                showLogoutConfirm(function() {
-                    localStorage.removeItem("userLoggedIn");
-                    window.location.href = "landingpage.html";
-                }, 'Sign out? Yes or No');
-            } else {
+            const performLogout = () => {
+                const activeRole = localStorage.getItem("role") || "";
+                const activeUserId = localStorage.getItem("userId") || "";
+
                 localStorage.removeItem("userLoggedIn");
-                window.location.href = "landingpage.html";
+                localStorage.removeItem("role");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("firstName");
+                localStorage.removeItem("lastName");
+                localStorage.removeItem("fullName");
+                localStorage.removeItem("profileImage");
+
+                if (activeRole && activeUserId) {
+                    localStorage.removeItem(`firstName:${activeRole}:${activeUserId}`);
+                    localStorage.removeItem(`lastName:${activeRole}:${activeUserId}`);
+                    localStorage.removeItem(`profileName:${activeRole}:${activeUserId}`);
+                    localStorage.removeItem(`profileImage:${activeRole}:${activeUserId}`);
+                }
+
+                window.location.href = "logout.php";
+            };
+
+            if (typeof showLogoutConfirm === 'function') {
+                showLogoutConfirm(performLogout, 'Sign out? Yes or No');
+            } else {
+                performLogout();
             }
         });
     }
@@ -174,7 +238,7 @@ function initializeProfileReviewForm() {
             return;
         }
 
-        const currentFullName = localStorage.getItem("fullName") || "Guest Traveler";
+        const currentFullName = (scopedNameKey ? localStorage.getItem(scopedNameKey) : null) || localStorage.getItem("fullName") || "Guest Traveler";
 
         fetch('submit_review.php', {
             method: 'POST',

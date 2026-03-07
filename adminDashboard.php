@@ -125,6 +125,30 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     <section class="pending-guides-section">
         <div class="panel pending-panel">
             <div class="panel-head">
+                <h3>Approved guide bookings</h3>
+                <span class="pending-subtitle">After the booked day is finished, click the button below to make that guide available for new tourists again.</span>
+            </div>
+            <div id="approvedBookingsContainer">
+                <p class="pending-loading" id="approvedBookingsLoading">Loading…</p>
+                <table class="pending-table" id="approvedBookingsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Tourist</th>
+                            <th>Guide</th>
+                            <th>Approved</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvedBookingsBody"></tbody>
+                </table>
+                <p class="pending-empty" id="approvedBookingsEmpty" style="display: none;">No approved guide bookings right now.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="pending-guides-section">
+        <div class="panel pending-panel">
+            <div class="panel-head">
                 <h3>Manage tour guides – On landing page</h3>
                 <span class="pending-subtitle">Remove a guide from the landing page for 1–3 days if they did not appear on the exact time. They will automatically reappear after that, or you can re-add them earlier from the section below.</span>
             </div>
@@ -204,10 +228,111 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
         <h2 class="panel-section-title">Review moderation section</h2>
     </section>
     <section class="pending-guides-section">
+        <div class="review-panels-grid">
+            <div class="panel pending-panel review-summary-panel">
+                <div class="panel-head">
+                    <h3>Rating overview</h3>
+                    <span class="pending-subtitle">Track average ratings, review types, and the current star distribution across submitted reviews.</span>
+                </div>
+                <p class="pending-loading" id="reviewSummaryLoading">Loading…</p>
+                <div id="reviewSummaryContent" style="display: none;">
+                    <div class="review-summary-stats">
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Total reviews</span>
+                            <strong id="reviewTotalCount">0</strong>
+                        </div>
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Average rating</span>
+                            <strong id="reviewAverageRating">0.0</strong>
+                        </div>
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Reported</span>
+                            <strong id="reviewReportedCount">0</strong>
+                        </div>
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Guide reviews</span>
+                            <strong id="reviewGuideCount">0</strong>
+                        </div>
+                        <div class="review-summary-card">
+                            <span class="review-summary-label">Location reviews</span>
+                            <strong id="reviewLocationCount">0</strong>
+                        </div>
+                    </div>
+                    <div class="review-distribution" id="reviewDistribution"></div>
+                    <p class="review-summary-updated" id="reviewSummaryUpdated"></p>
+                </div>
+                <p class="pending-empty" id="reviewSummaryEmpty" style="display: none;">No rating data available yet.</p>
+            </div>
+
+            <div class="panel pending-panel">
+                <div class="panel-head">
+                    <h3>Top-rated guides</h3>
+                    <span class="pending-subtitle">Sort guides by average rating, review count, or latest review activity.</span>
+                </div>
+                <div class="review-toolbar">
+                    <label class="review-control" for="topGuidesSort">
+                        <span>Sort by</span>
+                        <select id="topGuidesSort">
+                            <option value="highest">Highest rated</option>
+                            <option value="most_reviews">Most reviews</option>
+                            <option value="recent">Most recent review</option>
+                        </select>
+                    </label>
+                    <label class="review-control" for="topGuidesMinReviews">
+                        <span>Minimum reviews</span>
+                        <select id="topGuidesMinReviews">
+                            <option value="1">1+</option>
+                            <option value="2">2+</option>
+                            <option value="3">3+</option>
+                            <option value="5">5+</option>
+                        </select>
+                    </label>
+                </div>
+                <p class="pending-loading" id="topGuidesLoading">Loading…</p>
+                <div class="top-guides-list" id="topGuidesList" style="display: none;"></div>
+                <p class="pending-empty" id="topGuidesEmpty" style="display: none;">No guide ratings yet.</p>
+            </div>
+        </div>
+    </section>
+    <section class="pending-guides-section">
         <div class="panel pending-panel">
             <div class="panel-head">
-                <h3>Manage tourist reviews</h3>
-                <span class="pending-subtitle">All reviews from tourists (for guides or locations). Remove inappropriate reviews so they no longer appear on guide profiles or elsewhere.</span>
+                <h3>View previous reviews</h3>
+                <span class="pending-subtitle">Browse all active reviews from tourists, filter them by type or rating, and remove inappropriate entries.</span>
+            </div>
+            <div class="review-toolbar review-toolbar-inline">
+                <label class="review-control" for="reviewsAdminSearch">
+                    <span>Search</span>
+                    <input type="search" id="reviewsAdminSearch" placeholder="Search tourist, guide, location, or comment">
+                </label>
+                <label class="review-control" for="reviewsAdminTypeFilter">
+                    <span>Type</span>
+                    <select id="reviewsAdminTypeFilter">
+                        <option value="all">All reviews</option>
+                        <option value="guide">Guide</option>
+                        <option value="location">Location</option>
+                        <option value="reported">Reported only</option>
+                    </select>
+                </label>
+                <label class="review-control" for="reviewsAdminRatingFilter">
+                    <span>Rating</span>
+                    <select id="reviewsAdminRatingFilter">
+                        <option value="all">All ratings</option>
+                        <option value="5">5 stars</option>
+                        <option value="4">4 stars</option>
+                        <option value="3">3 stars</option>
+                        <option value="2">2 stars</option>
+                        <option value="1">1 star</option>
+                    </select>
+                </label>
+                <label class="review-control" for="reviewsAdminSort">
+                    <span>Sort</span>
+                    <select id="reviewsAdminSort">
+                        <option value="latest">Latest</option>
+                        <option value="highest">Highest rating</option>
+                        <option value="lowest">Lowest rating</option>
+                    </select>
+                </label>
             </div>
             <div id="reviewsAdminContainer">
                 <p class="pending-loading" id="reviewsAdminLoading">Loading…</p>
@@ -220,6 +345,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             <th>Comment</th>
                             <th>Reply</th>
                             <th>Date</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -238,79 +364,101 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
         <div class="panel pending-panel">
             <div class="panel-head">
                 <h3>Reported reviews</h3>
-                <span class="pending-subtitle">Reviews that have been reported by users will appear here. You can dismiss the report or remove the review.</span>
+                <span class="pending-subtitle">Reviews that have been flagged by guides or users appear here. Dismiss the report to keep it visible or delete the review.</span>
             </div>
             <div id="reportedReviewsContainer">
-                <p class="pending-empty" id="reportedReviewsEmpty">No reported reviews. When users report a review, it will appear here for moderation.</p>
+                <p class="pending-loading" id="reportedReviewsLoading">Loading…</p>
+                <table class="pending-table" id="reportedReviewsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Tourist</th>
+                            <th>Guide / Location</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportedReviewsBody"></tbody>
+                </table>
+                <p class="pending-empty" id="reportedReviewsEmpty" style="display: none;">No reported reviews. When users report a review, it will appear here for moderation.</p>
             </div>
         </div>
     </section>
 
-    <!-- System maintenance tools -->
+    <!-- Security and accessibility -->
     <section class="pending-guides-section">
-        <h2 class="panel-section-title">System maintenance tools</h2>
+        <h2 class="panel-section-title">Security and accessibility</h2>
     </section>
 
-    <main class="admin-grid">
-        <div class="panel table-panel">
+    <main class="admin-grid security-grid">
+        <div class="panel pending-panel table-panel">
             <div class="panel-head">
-                <h3>Live Island Deployments</h3>
+                <h3>Implementation status</h3>
                 <i data-feather="refresh-cw"></i>
+                <span class="pending-subtitle">Track the current state of the rollout directly from the admin dashboard.</span>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Guide</th>
-                        <th>Cebu Location</th>
-                        <th>Pax</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><b>John Lloyd Noya</b></td>
-                        <td>Kawasan Falls, Badian</td>
-                        <td>12</td>
-                        <td><span class="badge badge-tour">ON-TOUR</span></td>
-                    </tr>
-                    <tr>
-                        <td><b>Benjohn Paran</b></td>
-                        <td>Virgin Island, Bantayan</td>
-                        <td>6</td>
-                        <td><span class="badge badge-tour">ON-TOUR</span></td>
-                    </tr>
-                    <tr>
-                        <td><b>Jay-em Rosalita</b></td>
-                        <td>Oslob Whalesharks</td>
-                        <td>15</td>
-                        <td><span class="badge badge-wait">WAITING</span></td>
-                    </tr>
-                </tbody>
-            </table>
+            <div id="securityStatusContainer">
+                <p class="pending-loading" id="securityStatusLoading">Loading...</p>
+                <table class="pending-table" id="securityStatusTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Area</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="securityStatusBody"></tbody>
+                </table>
+                <p class="pending-empty" id="securityStatusEmpty" style="display: none;">Could not load the security and accessibility status.</p>
+            </div>
         </div>
 
-        <div class="panel feed-panel">
-            <h3>REGIONAL_INCIDENTS</h3>
-            <div class="feed-list">
-                <div class="feed-item alert">
-                    <span class="time">08:42</span>
-                    <p><b>OSLOB:</b> Signal Lost - Guide #44</p>
-                </div>
-                <div class="feed-item success">
-                    <span class="time">09:15</span>
-                    <p><b>BADIAN:</b> 12 Pax started Canyoneering</p>
-                </div>
-                <div class="feed-item">
-                    <span class="time">09:30</span>
-                    <p><b>BANTAYAN:</b> Weather Optimal</p>
-                </div>
+        <div class="panel feed-panel security-summary-panel">
+            <div class="panel-head">
+                <h3>Priority overview</h3>
+                <span class="pending-subtitle">A quick summary of what is complete and what still needs follow-up.</span>
             </div>
-            <div class="command-actions">
-                <button class="cmd-btn btn-danger">BROADCAST EMERGENCY</button>
-                <button class="cmd-btn">GENERATE DAILY REPORT</button>
+            <div id="securitySummaryContainer">
+                <p class="pending-loading" id="securitySummaryLoading">Loading...</p>
+                <div id="securitySummaryContent" style="display: none;">
+                    <div class="security-summary-stats">
+                        <div class="security-summary-card">
+                            <span class="security-summary-label">Implemented</span>
+                            <strong id="securityImplementedCount">0</strong>
+                        </div>
+                        <div class="security-summary-card">
+                            <span class="security-summary-label">Partial</span>
+                            <strong id="securityPartialCount">0</strong>
+                        </div>
+                        <div class="security-summary-card">
+                            <span class="security-summary-label">Needs attention</span>
+                            <strong id="securityAttentionCount">0</strong>
+                        </div>
+                    </div>
+                    <p class="security-summary-updated" id="securitySummaryUpdated"></p>
+                    <div class="feed-list security-recommendations" id="securityRecommendations"></div>
+                </div>
+                <p class="pending-empty" id="securitySummaryEmpty" style="display: none;">Could not load the summary.</p>
             </div>
         </div>
     </main>
+
+    <div class="admin-notice" id="adminNotice" aria-live="polite" aria-atomic="true">
+        <span id="adminNoticeMessage"></span>
+        <button type="button" class="admin-notice-close" id="adminNoticeClose" aria-label="Close message">OK</button>
+    </div>
+
+    <div class="admin-confirm-backdrop" id="adminConfirmBackdrop" hidden>
+        <div class="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="adminConfirmTitle" aria-describedby="adminConfirmMessage">
+            <h3 id="adminConfirmTitle">Please confirm</h3>
+            <p id="adminConfirmMessage"></p>
+            <div class="admin-confirm-actions">
+                <button type="button" class="admin-confirm-btn admin-confirm-cancel" id="adminConfirmCancel">Cancel</button>
+                <button type="button" class="admin-confirm-btn admin-confirm-ok" id="adminConfirmOk">Continue</button>
+            </div>
+        </div>
+    </div>
 
     <script src="logout_modal.js"></script>
     <script>feather.replace();</script>
@@ -339,6 +487,82 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             options.signal = ctrl.signal;
             return fetch(url, options).then(function(r) { clearTimeout(id); return r; }, function(err) { clearTimeout(id); throw err; });
         }
+
+        var adminNotice = document.getElementById('adminNotice');
+        var adminNoticeMessage = document.getElementById('adminNoticeMessage');
+        var adminNoticeClose = document.getElementById('adminNoticeClose');
+        var adminNoticeTimer = null;
+        var adminConfirmBackdrop = document.getElementById('adminConfirmBackdrop');
+        var adminConfirmMessage = document.getElementById('adminConfirmMessage');
+        var adminConfirmCancel = document.getElementById('adminConfirmCancel');
+        var adminConfirmOk = document.getElementById('adminConfirmOk');
+        var adminConfirmResolver = null;
+
+        function showAdminNotice(message) {
+            if (!adminNotice || !adminNoticeMessage) return;
+            adminNoticeMessage.textContent = message || 'Something went wrong.';
+            adminNotice.hidden = false;
+            adminNotice.classList.add('is-visible');
+            if (adminNoticeTimer) clearTimeout(adminNoticeTimer);
+            adminNoticeTimer = setTimeout(function() {
+                hideAdminNotice();
+            }, 3200);
+        }
+
+        function hideAdminNotice() {
+            if (!adminNotice) return;
+            adminNotice.classList.remove('is-visible');
+            adminNoticeTimer = setTimeout(function() {
+                adminNotice.hidden = true;
+            }, 180);
+        }
+
+        function closeAdminConfirm(confirmed) {
+            if (!adminConfirmBackdrop) return;
+            adminConfirmBackdrop.hidden = true;
+            if (adminConfirmResolver) {
+                var resolve = adminConfirmResolver;
+                adminConfirmResolver = null;
+                resolve(confirmed);
+            }
+        }
+
+        function showAdminConfirm(message) {
+            if (!adminConfirmBackdrop || !adminConfirmMessage) {
+                showAdminNotice(message || 'Please confirm this action.');
+                return Promise.resolve(false);
+            }
+            adminConfirmMessage.textContent = message || 'Are you sure you want to continue?';
+            adminConfirmBackdrop.hidden = false;
+            return new Promise(function(resolve) {
+                adminConfirmResolver = resolve;
+            });
+        }
+
+        if (adminNoticeClose) {
+            adminNoticeClose.addEventListener('click', hideAdminNotice);
+        }
+
+        if (adminConfirmCancel) {
+            adminConfirmCancel.addEventListener('click', function() { closeAdminConfirm(false); });
+        }
+
+        if (adminConfirmOk) {
+            adminConfirmOk.addEventListener('click', function() { closeAdminConfirm(true); });
+        }
+
+        if (adminConfirmBackdrop) {
+            adminConfirmBackdrop.addEventListener('click', function(e) {
+                if (e.target === adminConfirmBackdrop) closeAdminConfirm(false);
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (adminConfirmBackdrop && !adminConfirmBackdrop.hidden) closeAdminConfirm(false);
+                hideAdminNotice();
+            }
+        });
 
         function loadPending() {
             if (!loading) return;
@@ -385,13 +609,13 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                             if (empty) { empty.style.display = 'block'; empty.textContent = 'No pending guides. When a guide registers, they will appear here for you to add to the landing page.'; }
                                         }
                                     } else {
-                                        alert(res.error || 'Could not approve.');
+                                        showAdminNotice(res.error || 'Could not approve.');
                                         btn.disabled = false;
                                         btn.textContent = 'Add to landing page';
                                     }
                                 })
                                 .catch(function() {
-                                    alert('Request failed.');
+                                    showAdminNotice('Request failed.');
                                     btn.disabled = false;
                                     btn.textContent = 'Add to landing page';
                                 });
@@ -450,18 +674,19 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                     if (res.ok) {
                                         var row = document.querySelector('tr[data-booking-id="' + id + '"]');
                                         if (row) row.remove();
+                                        loadApprovedBookings();
                                         if (body && body.rows.length === 0) {
                                             if (table) table.style.display = 'none';
                                             if (empty) empty.style.display = 'block';
                                         }
                                     } else {
-                                        alert(res.error || 'Could not approve booking.');
+                                        showAdminNotice(res.error || 'Could not approve booking.');
                                         btn.disabled = false;
                                         btn.textContent = 'Approve booking';
                                     }
                                 })
                                 .catch(function() {
-                                    alert('Request failed.');
+                                    showAdminNotice('Request failed.');
                                     btn.disabled = false;
                                     btn.textContent = 'Approve booking';
                                 });
@@ -471,6 +696,76 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                 .catch(function() {
                     loading.style.display = 'none';
                     if (empty) { empty.innerHTML = 'Could not load booking requests.'; empty.style.display = 'block'; }
+                });
+        }
+
+        function loadApprovedBookings() {
+            var loading = document.getElementById('approvedBookingsLoading');
+            var table = document.getElementById('approvedBookingsTable');
+            var body = document.getElementById('approvedBookingsBody');
+            var empty = document.getElementById('approvedBookingsEmpty');
+            if (!loading) return;
+            loading.style.display = 'block';
+            if (table) table.style.display = 'none';
+            if (empty) empty.style.display = 'none';
+
+            fetchWithTimeout('get_approved_bookings_admin.php', { credentials: 'same-origin' })
+                .then(function(r) {
+                    if (r.status === 403) { window.location.href = 'signinTouristAdmin.html'; return []; }
+                    return r.json();
+                })
+                .then(function(data) {
+                    loading.style.display = 'none';
+                    if (!Array.isArray(data) || data.length === 0) {
+                        if (empty) empty.style.display = 'block';
+                        return;
+                    }
+                    if (table) table.style.display = 'table';
+                    if (body) {
+                        body.innerHTML = data.map(function(b) {
+                            return '<tr data-approved-booking-id="' + b.booking_id + '">' +
+                                '<td><b>' + escapeHtml(b.tourist_name) + '</b></td>' +
+                                '<td>' + escapeHtml(b.guide_name) + '</td>' +
+                                '<td>' + escapeHtml(b.approved_at || b.created_at || '') + '</td>' +
+                                '<td><button type="button" class="release-booking-btn" data-booking-id="' + b.booking_id + '">Make available again</button></td>' +
+                                '</tr>';
+                        }).join('');
+                    }
+                    document.querySelectorAll('.release-booking-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            var id = this.getAttribute('data-booking-id');
+                            if (!id) return;
+                            this.disabled = true;
+                            this.textContent = 'Updating…';
+                            var form = new FormData();
+                            form.append('booking_id', id);
+                            fetch('release_booking.php', { method: 'POST', credentials: 'same-origin', body: form })
+                                .then(function(r) { return r.json(); })
+                                .then(function(res) {
+                                    if (res.ok) {
+                                        var row = document.querySelector('tr[data-approved-booking-id="' + id + '"]');
+                                        if (row) row.remove();
+                                        if (body && body.rows.length === 0) {
+                                            if (table) table.style.display = 'none';
+                                            if (empty) empty.style.display = 'block';
+                                        }
+                                    } else {
+                                        showAdminNotice(res.error || 'Could not update booking.');
+                                        btn.disabled = false;
+                                        btn.textContent = 'Make available again';
+                                    }
+                                })
+                                .catch(function() {
+                                    showAdminNotice('Request failed.');
+                                    btn.disabled = false;
+                                    btn.textContent = 'Make available again';
+                                });
+                        });
+                    });
+                })
+                .catch(function() {
+                    loading.style.display = 'none';
+                    if (empty) { empty.innerHTML = 'Could not load approved bookings.'; empty.style.display = 'block'; }
                 });
         }
 
@@ -549,9 +844,9 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             fetch('suspend_guide.php', { method: 'POST', credentials: 'same-origin', body: form })
                                 .then(function(r) { return r.json(); })
                                 .then(function(res) {
-                                    if (res.ok) { loadAllGuides(); loadActiveGuides(); loadSuspendedGuides(); } else { alert(res.error || 'Failed'); this.disabled = false; }
+                                    if (res.ok) { loadAllGuides(); loadActiveGuides(); loadSuspendedGuides(); } else { showAdminNotice(res.error || 'Failed'); this.disabled = false; }
                                 }.bind(this))
-                                .catch(function() { alert('Request failed.'); this.disabled = false; }.bind(this));
+                                .catch(function() { showAdminNotice('Request failed.'); this.disabled = false; }.bind(this));
                         });
                     });
                 })
@@ -654,38 +949,40 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                 var id = cb.getAttribute('data-destination-id');
                                 if (id) ids.push(id);
                             });
-                            if (ids.length === 0) { alert('Select at least one spot to delete.'); return; }
-                            if (!confirm('Remove ' + ids.length + ' selected spot(s)? They will no longer appear on the landing page.')) return;
-                            bulkBtn.disabled = true;
-                            bulkBtn.textContent = 'Deleting…';
-                            var form = new FormData();
-                            ids.forEach(function(id) { form.append('destination_ids[]', id); });
-                            fetch('delete_spots_bulk.php', { method: 'POST', credentials: 'same-origin', body: form })
-                                .then(function(r) { return r.json(); })
-                                .then(function(res) {
-                                    if (res.ok) {
-                                        ids.forEach(function(id) {
-                                            var row = document.querySelector('tr[data-destination-id="' + id + '"]');
-                                            if (row) row.remove();
-                                        });
-                                        if (body.rows.length === 0) {
-                                            if (table) table.style.display = 'none';
-                                            if (empty) empty.style.display = 'block';
-                                            var ba = document.getElementById('spotsBulkActions');
-                                            if (ba) ba.style.display = 'none';
+                            if (ids.length === 0) { showAdminNotice('Select at least one spot to delete.'); return; }
+                            showAdminConfirm('Remove ' + ids.length + ' selected spot(s)? They will no longer appear on the landing page.').then(function(confirmed) {
+                                if (!confirmed) return;
+                                bulkBtn.disabled = true;
+                                bulkBtn.textContent = 'Deleting…';
+                                var form = new FormData();
+                                ids.forEach(function(id) { form.append('destination_ids[]', id); });
+                                fetch('delete_spots_bulk.php', { method: 'POST', credentials: 'same-origin', body: form })
+                                    .then(function(r) { return r.json(); })
+                                    .then(function(res) {
+                                        if (res.ok) {
+                                            ids.forEach(function(id) {
+                                                var row = document.querySelector('tr[data-destination-id="' + id + '"]');
+                                                if (row) row.remove();
+                                            });
+                                            if (body.rows.length === 0) {
+                                                if (table) table.style.display = 'none';
+                                                if (empty) empty.style.display = 'block';
+                                                var ba = document.getElementById('spotsBulkActions');
+                                                if (ba) ba.style.display = 'none';
+                                            }
+                                            if (selectAll) selectAll.checked = false;
+                                        } else {
+                                            showAdminNotice(res.error || 'Could not delete.');
                                         }
-                                        if (selectAll) selectAll.checked = false;
-                                    } else {
-                                        alert(res.error || 'Could not delete.');
-                                    }
-                                    bulkBtn.disabled = false;
-                                    bulkBtn.textContent = 'Delete selected spots';
-                                })
-                                .catch(function() {
-                                    alert('Request failed.');
-                                    bulkBtn.disabled = false;
-                                    bulkBtn.textContent = 'Delete selected spots';
-                                });
+                                        bulkBtn.disabled = false;
+                                        bulkBtn.textContent = 'Delete selected spots';
+                                    })
+                                    .catch(function() {
+                                        showAdminNotice('Request failed.');
+                                        bulkBtn.disabled = false;
+                                        bulkBtn.textContent = 'Delete selected spots';
+                                    });
+                            });
                         };
                     }
                     document.querySelectorAll('.save-spot-price-btn').forEach(function(btn) {
@@ -708,13 +1005,13 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                         var t = this;
                                         setTimeout(function() { t.textContent = 'Save'; t.disabled = false; }, 1500);
                                     } else {
-                                        alert(res.error || 'Could not save.');
+                                        showAdminNotice(res.error || 'Could not save.');
                                         this.disabled = false;
                                         this.textContent = 'Save';
                                     }
                                 }.bind(this))
                                 .catch(function() {
-                                    alert('Request failed.');
+                                    showAdminNotice('Request failed.');
                                     this.disabled = false;
                                     this.textContent = 'Save';
                                 }.bind(this));
@@ -726,44 +1023,271 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             if (!id) return;
                             var row = document.querySelector('tr[data-destination-id="' + id + '"]');
                             var spotName = row && row.cells[0] ? row.cells[0].textContent.trim() : 'This spot';
-                            if (!confirm('Remove "' + spotName + '"? It will no longer appear on the landing page.')) return;
-                            this.disabled = true;
-                            this.textContent = 'Deleting…';
-                            var form = new FormData();
-                            form.append('destination_id', id);
-                            fetch('delete_spot.php', { method: 'POST', credentials: 'same-origin', body: form })
-                                .then(function(r) { return r.json(); })
-                                .then(function(res) {
-                                    if (res.ok && row) {
-                                        row.remove();
-                                        if (body.rows.length === 0) {
-                                            if (table) table.style.display = 'none';
-                                            if (empty) empty.style.display = 'block';
+                            showAdminConfirm('Remove "' + spotName + '"? It will no longer appear on the landing page.').then(function(confirmed) {
+                                if (!confirmed) return;
+                                this.disabled = true;
+                                this.textContent = 'Deleting…';
+                                var form = new FormData();
+                                form.append('destination_id', id);
+                                fetch('delete_spot.php', { method: 'POST', credentials: 'same-origin', body: form })
+                                    .then(function(r) { return r.json(); })
+                                    .then(function(res) {
+                                        if (res.ok && row) {
+                                            row.remove();
+                                            if (body.rows.length === 0) {
+                                                if (table) table.style.display = 'none';
+                                                if (empty) empty.style.display = 'block';
+                                            }
+                                        } else {
+                                            showAdminNotice(res.error || 'Could not delete.');
+                                            this.disabled = false;
+                                            this.textContent = 'Delete';
                                         }
-                                    } else {
-                                        alert(res.error || 'Could not delete.');
+                                    }.bind(this))
+                                    .catch(function() {
+                                        showAdminNotice('Request failed.');
                                         this.disabled = false;
                                         this.textContent = 'Delete';
-                                    }
-                                }.bind(this))
-                                .catch(function() {
-                                    alert('Request failed.');
-                                    this.disabled = false;
-                                    this.textContent = 'Delete';
-                                }.bind(this));
+                                    }.bind(this));
+                            }.bind(this));
                         });
                     });
                 })
                 .catch(function() {
                     loading.style.display = 'none';
-                    if (empty) { empty.innerHTML = 'Could not load spots. Request failed or timed out. Open via <code>http://localhost/guidemate1/adminDashboard.php</code> and ensure Apache and MySQL are running.'; empty.style.display = 'block'; }
+                    if (empty) { empty.innerHTML = 'Could not load spots. Request failed or timed out. Open this page through your local server and ensure Apache and MySQL are running.'; empty.style.display = 'block'; }
                 });
+        }
+
+        var reviewsAdminData = [];
+
+        function getReviewStatusBadgeClass(status) {
+            switch (String(status || 'visible').toLowerCase()) {
+                case 'reported':
+                    return 'badge-review-reported';
+                case 'hidden':
+                    return 'badge-review-hidden';
+                default:
+                    return 'badge-review-visible';
+            }
+        }
+
+        function formatReviewStars(rating) {
+            rating = Number(rating || 0);
+            return (rating >= 1 && rating <= 5) ? ('★'.repeat(rating) + ' ' + rating) : '—';
+        }
+
+        function truncateReviewText(value, maxLength) {
+            value = value || '';
+            return value.length > maxLength ? (value.substring(0, maxLength - 1) + '…') : value;
+        }
+
+        function refreshReviewDashboard() {
+            loadReviewsAdmin();
+            loadReviewSummary();
+            loadTopRatedGuides();
+            loadReportedReviews();
+        }
+
+        function bindReviewDashboardControls() {
+            var search = document.getElementById('reviewsAdminSearch');
+            var typeFilter = document.getElementById('reviewsAdminTypeFilter');
+            var ratingFilter = document.getElementById('reviewsAdminRatingFilter');
+            var sort = document.getElementById('reviewsAdminSort');
+            var topGuidesSort = document.getElementById('topGuidesSort');
+            var topGuidesMinReviews = document.getElementById('topGuidesMinReviews');
+
+            if (search && !search.dataset.bound) {
+                search.addEventListener('input', renderReviewsAdminTable);
+                search.dataset.bound = '1';
+            }
+            if (typeFilter && !typeFilter.dataset.bound) {
+                typeFilter.addEventListener('change', renderReviewsAdminTable);
+                typeFilter.dataset.bound = '1';
+            }
+            if (ratingFilter && !ratingFilter.dataset.bound) {
+                ratingFilter.addEventListener('change', renderReviewsAdminTable);
+                ratingFilter.dataset.bound = '1';
+            }
+            if (sort && !sort.dataset.bound) {
+                sort.addEventListener('change', renderReviewsAdminTable);
+                sort.dataset.bound = '1';
+            }
+            if (topGuidesSort && !topGuidesSort.dataset.bound) {
+                topGuidesSort.addEventListener('change', loadTopRatedGuides);
+                topGuidesSort.dataset.bound = '1';
+            }
+            if (topGuidesMinReviews && !topGuidesMinReviews.dataset.bound) {
+                topGuidesMinReviews.addEventListener('change', loadTopRatedGuides);
+                topGuidesMinReviews.dataset.bound = '1';
+            }
+        }
+
+        function deleteReviewAdmin(reviewId, button) {
+            if (!reviewId) return;
+            showAdminConfirm('Remove this review? It will be permanently deleted.').then(function(confirmed) {
+                if (!confirmed) return;
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = 'Deleting…';
+                }
+                var form = new FormData();
+                form.append('review_id', reviewId);
+                fetch('delete_review_admin.php', { method: 'POST', credentials: 'same-origin', body: form })
+                    .then(function(r) {
+                        if (r.status === 403) {
+                            window.location.href = 'signinTouristAdmin.html';
+                            return null;
+                        }
+                        return r.json();
+                    })
+                    .then(function(res) {
+                        if (!res) return;
+                        if (res.ok) {
+                            refreshReviewDashboard();
+                            showAdminNotice('Review deleted.');
+                            return;
+                        }
+                        showAdminNotice(res.error || 'Could not delete.');
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = 'Delete';
+                        }
+                    })
+                    .catch(function() {
+                        showAdminNotice('Request failed.');
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = 'Delete';
+                        }
+                    });
+            });
+        }
+
+        function dismissReportedReview(reviewId, button) {
+            if (!reviewId) return;
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Dismissing…';
+            }
+            var form = new FormData();
+            form.append('review_id', reviewId);
+            form.append('action', 'dismiss');
+            fetch('resolve_review_report_admin.php', { method: 'POST', credentials: 'same-origin', body: form })
+                .then(function(r) {
+                    if (r.status === 403) {
+                        window.location.href = 'signinTouristAdmin.html';
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(function(res) {
+                    if (!res) return;
+                    if (res.ok) {
+                        refreshReviewDashboard();
+                        showAdminNotice('Report dismissed.');
+                        return;
+                    }
+                    showAdminNotice(res.error || 'Could not dismiss report.');
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = 'Dismiss';
+                    }
+                })
+                .catch(function() {
+                    showAdminNotice('Request failed.');
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = 'Dismiss';
+                    }
+                });
+        }
+
+        function renderReviewsAdminTable() {
+            var table = document.getElementById('reviewsAdminTable');
+            var body = document.getElementById('reviewsAdminBody');
+            var empty = document.getElementById('reviewsAdminEmpty');
+            var search = document.getElementById('reviewsAdminSearch');
+            var typeFilter = document.getElementById('reviewsAdminTypeFilter');
+            var ratingFilter = document.getElementById('reviewsAdminRatingFilter');
+            var sort = document.getElementById('reviewsAdminSort');
+
+            if (!body || !table || !empty) return;
+
+            var query = search ? String(search.value || '').trim().toLowerCase() : '';
+            var typeValue = typeFilter ? typeFilter.value : 'all';
+            var ratingValue = ratingFilter ? ratingFilter.value : 'all';
+            var sortValue = sort ? sort.value : 'latest';
+
+            var filtered = reviewsAdminData.slice().filter(function(review) {
+                var reviewType = String(review.review_type || 'location').toLowerCase();
+                var status = String(review.status || 'visible').toLowerCase();
+                var textBlob = [
+                    review.tourist_name || '',
+                    review.guide_name || '',
+                    review.location_name || '',
+                    review.subject || '',
+                    review.comment || ''
+                ].join(' ').toLowerCase();
+
+                if (typeValue === 'reported' && status !== 'reported') return false;
+                if (typeValue !== 'all' && typeValue !== 'reported' && reviewType !== typeValue) return false;
+                if (ratingValue !== 'all' && Number(review.rating || 0) !== Number(ratingValue)) return false;
+                if (query && textBlob.indexOf(query) === -1) return false;
+                return true;
+            });
+
+            filtered.sort(function(a, b) {
+                if (sortValue === 'highest') {
+                    if (Number(b.rating || 0) !== Number(a.rating || 0)) {
+                        return Number(b.rating || 0) - Number(a.rating || 0);
+                    }
+                } else if (sortValue === 'lowest') {
+                    if (Number(a.rating || 0) !== Number(b.rating || 0)) {
+                        return Number(a.rating || 0) - Number(b.rating || 0);
+                    }
+                }
+                return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+            });
+
+            if (filtered.length === 0) {
+                table.style.display = 'none';
+                empty.textContent = reviewsAdminData.length === 0 ? 'No tourist reviews yet.' : 'No reviews match the selected filters.';
+                empty.style.display = 'block';
+                body.innerHTML = '';
+                return;
+            }
+
+            empty.style.display = 'none';
+            table.style.display = 'table';
+            body.innerHTML = filtered.map(function(review) {
+                var commentShort = truncateReviewText(review.comment || '—', 80);
+                var replyShort = truncateReviewText(review.reply_text || '—', 50);
+                var subject = [review.guide_name || '', review.location_name || ''].filter(Boolean).join(' @ ');
+                if (!subject) subject = review.subject || '—';
+                var status = String(review.status || 'visible');
+                return '<tr data-review-id="' + review.review_id + '">' +
+                    '<td>' + escapeHtml(review.tourist_name || '—') + '</td>' +
+                    '<td>' + escapeHtml(subject) + ' <small>(' + escapeHtml(String(review.review_type || 'location').toUpperCase()) + ')</small></td>' +
+                    '<td>' + escapeHtml(formatReviewStars(review.rating)) + '</td>' +
+                    '<td title="' + escapeAttr(review.comment || '') + '">' + escapeHtml(commentShort) + '</td>' +
+                    '<td title="' + escapeAttr(review.reply_text || '') + '">' + escapeHtml(replyShort) + '</td>' +
+                    '<td>' + escapeHtml(review.created_at || '') + '</td>' +
+                    '<td><span class="badge ' + getReviewStatusBadgeClass(status) + '">' + escapeHtml(status.charAt(0).toUpperCase() + status.slice(1)) + '</span></td>' +
+                    '<td><button type="button" class="delete-review-admin-btn" data-review-id="' + review.review_id + '">Delete</button></td>' +
+                    '</tr>';
+            }).join('');
+
+            body.querySelectorAll('.delete-review-admin-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    deleteReviewAdmin(this.getAttribute('data-review-id'), this);
+                });
+            });
         }
 
         function loadReviewsAdmin() {
             var loading = document.getElementById('reviewsAdminLoading');
             var table = document.getElementById('reviewsAdminTable');
-            var body = document.getElementById('reviewsAdminBody');
             var empty = document.getElementById('reviewsAdminEmpty');
             if (!loading) return;
             loading.style.display = 'block';
@@ -771,74 +1295,203 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             if (empty) empty.style.display = 'none';
             fetchWithTimeout('get_reviews_admin.php', { credentials: 'same-origin' })
                 .then(function(r) {
-                    if (r.status === 403) { window.location.href = 'signinTouristAdmin.html'; return []; }
+                    if (r.status === 403) {
+                        window.location.href = 'signinTouristAdmin.html';
+                        return [];
+                    }
                     return r.json();
                 })
                 .then(function(data) {
                     loading.style.display = 'none';
                     if (!Array.isArray(data)) {
-                        if (empty) { empty.textContent = 'Could not load reviews.'; empty.style.display = 'block'; }
+                        reviewsAdminData = [];
+                        if (empty) {
+                            empty.textContent = 'Could not load reviews.';
+                            empty.style.display = 'block';
+                        }
                         return;
                     }
-                    if (data.length === 0) {
-                        if (empty) empty.style.display = 'block';
+                    reviewsAdminData = data;
+                    renderReviewsAdminTable();
+                })
+                .catch(function() {
+                    loading.style.display = 'none';
+                    reviewsAdminData = [];
+                    if (empty) {
+                        empty.innerHTML = 'Could not load reviews. Request failed or timed out.';
+                        empty.style.display = 'block';
+                    }
+                });
+        }
+
+        function loadReviewSummary() {
+            var loading = document.getElementById('reviewSummaryLoading');
+            var content = document.getElementById('reviewSummaryContent');
+            var empty = document.getElementById('reviewSummaryEmpty');
+            var distribution = document.getElementById('reviewDistribution');
+            if (!loading || !content || !empty) return;
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            empty.style.display = 'none';
+
+            fetchWithTimeout('get_review_summary_admin.php', { credentials: 'same-origin' })
+                .then(function(r) {
+                    if (r.status === 403) {
+                        window.location.href = 'signinTouristAdmin.html';
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(function(data) {
+                    loading.style.display = 'none';
+                    if (!data || Number(data.total_reviews || 0) === 0) {
+                        empty.style.display = 'block';
                         return;
                     }
-                    if (table) table.style.display = 'table';
-                    if (body) {
-                        body.innerHTML = data.map(function(r) {
-                            var stars = (r.rating >= 1 && r.rating <= 5) ? '★'.repeat(r.rating) : (r.rating || '—');
-                            var commentShort = (r.comment || '').length > 80 ? (r.comment.substring(0, 77) + '…') : (r.comment || '—');
-                            var replyShort = (r.reply_text || '').length > 50 ? (r.reply_text.substring(0, 47) + '…') : (r.reply_text || '—');
-                            var guideAndLocation = [r.guide_name || '', r.location_name || ''].filter(Boolean).join(' @ ');
-                            if (!guideAndLocation) guideAndLocation = r.subject || '—';
-                            var reviewType = (r.review_type || 'location').toUpperCase();
-                            return '<tr data-review-id="' + r.review_id + '">' +
-                                '<td>' + escapeHtml(r.tourist_name) + '</td>' +
-                                '<td>' + escapeHtml(guideAndLocation) + ' <small>(' + escapeHtml(reviewType) + ')</small></td>' +
-                                '<td>' + stars + '</td>' +
-                                '<td title="' + escapeAttr(r.comment || '') + '">' + escapeHtml(commentShort) + '</td>' +
-                                '<td title="' + escapeAttr(r.reply_text || '') + '">' + escapeHtml(replyShort) + '</td>' +
-                                '<td>' + escapeHtml(r.created_at || '') + '</td>' +
-                                '<td><button type="button" class="delete-review-admin-btn" data-review-id="' + r.review_id + '">Delete</button></td></tr>';
+
+                    document.getElementById('reviewTotalCount').textContent = Number(data.total_reviews || 0);
+                    document.getElementById('reviewAverageRating').textContent = Number(data.average_rating || 0).toFixed(1);
+                    document.getElementById('reviewReportedCount').textContent = Number(data.reported_reviews || 0);
+                    document.getElementById('reviewGuideCount').textContent = Number(data.guide_reviews || 0);
+                    document.getElementById('reviewLocationCount').textContent = Number(data.location_reviews || 0);
+                    document.getElementById('reviewSummaryUpdated').textContent = data.latest_review_at ? ('Latest review: ' + data.latest_review_at) : '';
+
+                    var total = Number(data.total_reviews || 0);
+                    var dist = data.distribution || {};
+                    if (distribution) {
+                        distribution.innerHTML = [5, 4, 3, 2, 1].map(function(star) {
+                            var count = Number(dist[String(star)] || 0);
+                            var percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                            return '<div class="review-distribution-row">' +
+                                '<span class="review-distribution-label">' + star + ' star</span>' +
+                                '<span class="review-distribution-bar"><span class="review-distribution-fill" style="width:' + percent + '%;"></span></span>' +
+                                '<span class="review-distribution-count">' + count + '</span>' +
+                                '</div>';
                         }).join('');
                     }
-                    document.querySelectorAll('.delete-review-admin-btn').forEach(function(btn) {
+
+                    content.style.display = 'block';
+                })
+                .catch(function() {
+                    loading.style.display = 'none';
+                    empty.textContent = 'Could not load rating summary.';
+                    empty.style.display = 'block';
+                });
+        }
+
+        function loadTopRatedGuides() {
+            var loading = document.getElementById('topGuidesLoading');
+            var list = document.getElementById('topGuidesList');
+            var empty = document.getElementById('topGuidesEmpty');
+            var sort = document.getElementById('topGuidesSort');
+            var minReviews = document.getElementById('topGuidesMinReviews');
+            if (!loading || !list || !empty) return;
+
+            loading.style.display = 'block';
+            list.style.display = 'none';
+            empty.style.display = 'none';
+
+            var query = '?sort=' + encodeURIComponent(sort ? sort.value : 'highest') +
+                '&min_reviews=' + encodeURIComponent(minReviews ? minReviews.value : '1') +
+                '&limit=8';
+
+            fetchWithTimeout('get_top_rated_guides.php' + query, { credentials: 'same-origin' })
+                .then(function(r) {
+                    if (r.status === 403) {
+                        window.location.href = 'signinTouristAdmin.html';
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(function(data) {
+                    loading.style.display = 'none';
+                    var guides = data && Array.isArray(data.guides) ? data.guides : [];
+                    if (!guides.length) {
+                        empty.style.display = 'block';
+                        return;
+                    }
+
+                    list.innerHTML = guides.map(function(guide, index) {
+                        var avg = Number(guide.avg_rating || 0);
+                        var stars = avg > 0 ? '★'.repeat(Math.max(1, Math.round(avg))) : '—';
+                        var reviewCount = Number(guide.review_count || 0);
+                        var reviewsLabel = reviewCount === 1 ? '1 review' : (reviewCount + ' reviews');
+                        return '<div class="top-guide-card">' +
+                            '<span class="top-guide-rank">#' + (index + 1) + '</span>' +
+                            '<div>' +
+                            '<strong>' + escapeHtml(guide.guide_name || 'Guide') + '</strong>' +
+                            '<div class="top-guide-stars">' + escapeHtml(stars) + ' <span>' + escapeHtml(avg.toFixed(1)) + '</span></div>' +
+                            '<div class="top-guide-meta">' + escapeHtml(reviewsLabel) + (guide.last_review_at ? (' · last review ' + escapeHtml(guide.last_review_at)) : '') + '</div>' +
+                            '</div>' +
+                            '</div>';
+                    }).join('');
+                    list.style.display = 'grid';
+                })
+                .catch(function() {
+                    loading.style.display = 'none';
+                    empty.textContent = 'Could not load top-rated guides.';
+                    empty.style.display = 'block';
+                });
+        }
+
+        function loadReportedReviews() {
+            var loading = document.getElementById('reportedReviewsLoading');
+            var table = document.getElementById('reportedReviewsTable');
+            var body = document.getElementById('reportedReviewsBody');
+            var empty = document.getElementById('reportedReviewsEmpty');
+            if (!loading || !table || !body || !empty) return;
+
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            empty.style.display = 'none';
+
+            fetchWithTimeout('get_reported_reviews_admin.php', { credentials: 'same-origin' })
+                .then(function(r) {
+                    if (r.status === 403) {
+                        window.location.href = 'signinTouristAdmin.html';
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(function(data) {
+                    loading.style.display = 'none';
+                    var reviews = data && Array.isArray(data.reviews) ? data.reviews : [];
+                    if (!reviews.length) {
+                        empty.style.display = 'block';
+                        return;
+                    }
+
+                    table.style.display = 'table';
+                    body.innerHTML = reviews.map(function(review) {
+                        return '<tr data-review-id="' + review.review_id + '">' +
+                            '<td>' + escapeHtml(review.tourist_name || '—') + '</td>' +
+                            '<td>' + escapeHtml(review.subject || '—') + ' <small>(' + escapeHtml(String(review.review_type || 'location').toUpperCase()) + ')</small></td>' +
+                            '<td>' + escapeHtml(formatReviewStars(review.rating)) + '</td>' +
+                            '<td title="' + escapeAttr(review.comment || '') + '">' + escapeHtml(truncateReviewText(review.comment || '—', 90)) + '</td>' +
+                            '<td>' + escapeHtml(review.created_at || '') + '</td>' +
+                            '<td><span class="review-actions-inline">' +
+                            '<button type="button" class="dismiss-report-btn" data-review-id="' + review.review_id + '">Dismiss</button>' +
+                            '<button type="button" class="delete-review-admin-btn" data-review-id="' + review.review_id + '">Delete</button>' +
+                            '</span></td>' +
+                            '</tr>';
+                    }).join('');
+
+                    body.querySelectorAll('.dismiss-report-btn').forEach(function(btn) {
                         btn.addEventListener('click', function() {
-                            var id = this.getAttribute('data-review-id');
-                            if (!id) return;
-                            if (!confirm('Remove this review? It will be permanently deleted.')) return;
-                            this.disabled = true;
-                            this.textContent = 'Deleting…';
-                            var row = document.querySelector('tr[data-review-id="' + id + '"]');
-                            var form = new FormData();
-                            form.append('review_id', id);
-                            fetch('delete_review_admin.php', { method: 'POST', credentials: 'same-origin', body: form })
-                                .then(function(r) { return r.json(); })
-                                .then(function(res) {
-                                    if (res.ok && row) {
-                                        row.remove();
-                                        if (body.rows.length === 0) {
-                                            if (table) table.style.display = 'none';
-                                            if (empty) empty.style.display = 'block';
-                                        }
-                                    } else {
-                                        alert(res.error || 'Could not delete.');
-                                        this.disabled = false;
-                                        this.textContent = 'Delete';
-                                    }
-                                }.bind(this))
-                                .catch(function() {
-                                    alert('Request failed.');
-                                    this.disabled = false;
-                                    this.textContent = 'Delete';
-                                }.bind(this));
+                            dismissReportedReview(this.getAttribute('data-review-id'), this);
+                        });
+                    });
+                    body.querySelectorAll('.delete-review-admin-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            deleteReviewAdmin(this.getAttribute('data-review-id'), this);
                         });
                     });
                 })
                 .catch(function() {
                     loading.style.display = 'none';
-                    if (empty) { empty.innerHTML = 'Could not load reviews. Request failed or timed out.'; empty.style.display = 'block'; }
+                    empty.textContent = 'Could not load reported reviews.';
+                    empty.style.display = 'block';
                 });
         }
 
@@ -877,30 +1530,132 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                 .catch(function() {});
         }
 
+        function getSecurityBadgeClass(status) {
+            switch (status) {
+                case 'Implemented':
+                    return 'badge-security-ok';
+                case 'Needs attention':
+                    return 'badge-security-alert';
+                default:
+                    return 'badge-security-partial';
+            }
+        }
+
+        function loadSecurityStatus() {
+            var loading = document.getElementById('securityStatusLoading');
+            var table = document.getElementById('securityStatusTable');
+            var body = document.getElementById('securityStatusBody');
+            var empty = document.getElementById('securityStatusEmpty');
+            var summaryLoading = document.getElementById('securitySummaryLoading');
+            var summaryContent = document.getElementById('securitySummaryContent');
+            var summaryEmpty = document.getElementById('securitySummaryEmpty');
+
+            if (loading) loading.style.display = 'block';
+            if (table) table.style.display = 'none';
+            if (empty) empty.style.display = 'none';
+            if (summaryLoading) summaryLoading.style.display = 'block';
+            if (summaryContent) summaryContent.style.display = 'none';
+            if (summaryEmpty) summaryEmpty.style.display = 'none';
+
+            fetchWithTimeout('get_security_accessibility_status.php', { credentials: 'same-origin' })
+                .then(function(r) {
+                    if (r.status === 403) {
+                        window.location.href = 'signinTouristAdmin.html';
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(function(data) {
+                    if (!data) return;
+
+                    var items = Array.isArray(data.items) ? data.items : [];
+                    var summary = data.summary || {};
+
+                    if (loading) loading.style.display = 'none';
+                    if (summaryLoading) summaryLoading.style.display = 'none';
+
+                    if (!items.length) {
+                        if (empty) empty.style.display = 'block';
+                        if (summaryEmpty) summaryEmpty.style.display = 'block';
+                        return;
+                    }
+
+                    if (table) table.style.display = 'table';
+                    if (body) {
+                        body.innerHTML = items.map(function(item) {
+                            return '<tr>' +
+                                '<td><b>' + escapeHtml(item.label || '') + '</b></td>' +
+                                '<td><span class="badge ' + getSecurityBadgeClass(item.status) + '">' + escapeHtml(item.status || 'Partial') + '</span></td>' +
+                                '<td>' + escapeHtml(item.detail || '') + '</td>' +
+                                '</tr>';
+                        }).join('');
+                    }
+
+                    if (summaryContent) summaryContent.style.display = 'block';
+                    var implementedCount = document.getElementById('securityImplementedCount');
+                    var partialCount = document.getElementById('securityPartialCount');
+                    var attentionCount = document.getElementById('securityAttentionCount');
+                    var updated = document.getElementById('securitySummaryUpdated');
+                    var recommendations = document.getElementById('securityRecommendations');
+
+                    if (implementedCount) implementedCount.textContent = Number(summary.implemented || 0);
+                    if (partialCount) partialCount.textContent = Number(summary.partial || 0);
+                    if (attentionCount) attentionCount.textContent = Number(summary.needs_attention || 0);
+                    if (updated) updated.textContent = summary.updated_at ? ('Last checked: ' + summary.updated_at) : '';
+
+                    if (recommendations) {
+                        var recs = Array.isArray(summary.recommendations) ? summary.recommendations : [];
+                        recommendations.innerHTML = recs.map(function(item) {
+                            return '<div class="feed-item ' + (item.variant ? escapeHtml(item.variant) : '') + '">' +
+                                '<p><b>' + escapeHtml(item.title || '') + '</b><br>' + escapeHtml(item.detail || '') + '</p>' +
+                                '</div>';
+                        }).join('');
+                    }
+                })
+                .catch(function() {
+                    if (loading) loading.style.display = 'none';
+                    if (summaryLoading) summaryLoading.style.display = 'none';
+                    if (empty) empty.style.display = 'block';
+                    if (summaryEmpty) summaryEmpty.style.display = 'block';
+                });
+        }
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
                 updateDashboardDate();
                 setInterval(updateDashboardDate, 60000);
+                bindReviewDashboardControls();
                 loadAdminStats();
                 loadAllGuides();
                 loadPending();
                 loadPendingBookings();
+                loadApprovedBookings();
                 loadActiveGuides();
                 loadSuspendedGuides();
                 loadSpotsPrice();
                 loadReviewsAdmin();
+                loadReviewSummary();
+                loadTopRatedGuides();
+                loadReportedReviews();
+                loadSecurityStatus();
             });
         } else {
             updateDashboardDate();
             setInterval(updateDashboardDate, 60000);
+            bindReviewDashboardControls();
             loadAdminStats();
             loadAllGuides();
             loadPending();
             loadPendingBookings();
+            loadApprovedBookings();
             loadActiveGuides();
             loadSuspendedGuides();
             loadSpotsPrice();
             loadReviewsAdmin();
+            loadReviewSummary();
+            loadTopRatedGuides();
+            loadReportedReviews();
+            loadSecurityStatus();
         }
     })();
     </script>

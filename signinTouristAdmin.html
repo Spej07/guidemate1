@@ -35,13 +35,13 @@
          <form id="signin-form" action="signinTouristAdmin.php" method="POST">
             <div class="form-stack" style="display: flex; flex-direction: column; gap: 15px;">
                 <div class="input-box">
-                    <label><i class="fa-regular fa-user"></i> Username</label>
-                    <input type="text" name="username" placeholder="Enter your username" required>
+                    <label for="signin-username"><i class="fa-regular fa-user"></i> Username</label>
+                    <input type="text" name="username" id="signin-username" autocomplete="username" placeholder="Enter your username" required>
                 </div>
 
                 <div class="input-box">
-                    <label><i class="fa-solid fa-lock"></i> Password</label>
-                    <input type="password" name="password" id="signin-password" placeholder="Enter your password">
+                    <label for="signin-password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" name="password" id="signin-password" autocomplete="current-password" placeholder="Enter your password" required>
                 </div>
             </div>
 
@@ -51,12 +51,6 @@
                 Don't have an account? <a href="SignupTouristAdmin.html">Create one here</a>
             </p>
         </form>
-
-        <div style="margin-top: 20px; text-align: center; border-top: 1px solid #eee; padding-top: 10px;">
-            <a href="admin_auto_login.php" style="color: #888; font-size: 0.75rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                <i class="fa-solid fa-code-branch"></i> Dev: Auto-Login Maria C.
-            </a>
-        </div>
         </div>
     </div>
     
@@ -64,22 +58,18 @@
         document.getElementById('signin-form').addEventListener('submit', function(e) {
             const user = this.username.value.trim();
             const pass = this.password.value.trim();
-            const isAdminMaria = user === 'Maria C.';
             if (!user) {
                 e.preventDefault();
                 alert("Please enter your username.");
+                this.username.focus();
                 return;
             }
-            if (!isAdminMaria && !pass) {
+            if (!pass) {
                 e.preventDefault();
                 alert("Please enter your password.");
+                this.password.focus();
                 return;
             }
-        });
-        // Optional: make password field required only when not admin "Maria C."
-        document.querySelector('input[name="username"]').addEventListener('input', function() {
-            const pw = document.getElementById('signin-password');
-            pw.required = this.value.trim() !== 'Maria C.';
         });
     </script>
 </body>

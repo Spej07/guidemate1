@@ -11,7 +11,7 @@ function _debug_log($data) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
-    $password = $_POST['password'];
+    $password = $_POST['password'] ?? '';
 
     // #region agent log
     _debug_log(['message'=>'POST received','data'=>['username'=>$username,'username_len'=>strlen($username),'has_password'=>strlen($password)>0],'hypothesisId'=>'H3,H4']);
@@ -35,66 +35,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $role = $user['role'];
         $hashedPassword = $user['password'];
 
-        // 2. DEFAULT ADMIN BYPASS LOGIC
-        // If username is "Maria C." and database role is admin, skip password check
-        $isAdminDefault = ($username === "Maria C." && $role === 'admin');
         $isPasswordCorrect = password_verify($password, $hashedPassword);
 
-        if ($isAdminDefault || $isPasswordCorrect) {
+        if ($isPasswordCorrect) {
             
-            // 3. Set Session variables for server-side security
+            // Refresh the session identifier after authentication to reduce fixation risk.
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $userId;
             $_SESSION['role'] = $role;
             $_SESSION['username'] = $username;
 
-            $specificId = ''; 
+            $specificId = '';
+            $profileImage = 'photos/default.jpg';
+            $firstName = '';
+            $lastName = '';
 
             // 4. Retrieve specific IDs for Tourists or Guides
             if ($role === 'tourist') {
-                $tStmt = $mysqli->prepare("SELECT tourist_id, profile_image FROM tourists WHERE user_id = ?");
+                $tStmt = $mysqli->prepare("SELECT tourist_id, first_name, last_name, profile_image FROM tourists WHERE user_id = ?");
                 $tStmt->bind_param("i", $userId);
                 $tStmt->execute();
                 $tRes = $tStmt->get_result();
-                $touristProfileImage = 'photos/default.jpg';
                 if ($row = $tRes->fetch_assoc()) {
                     $specificId = $row['tourist_id'];
+                    $firstName = trim((string)($row['first_name'] ?? ''));
+                    $lastName = trim((string)($row['last_name'] ?? ''));
                     if (!empty($row['profile_image'])) {
-                        $touristProfileImage = addslashes($row['profile_image']);
+                        $profileImage = $row['profile_image'];
                     }
                 }
                 $tStmt->close();
             } elseif ($role === 'guide') {
-                $gStmt = $mysqli->prepare("SELECT guide_id, profile_image FROM tour_guides WHERE user_id = ?");
+                $gStmt = $mysqli->prepare("SELECT guide_id, first_name, last_name, profile_image FROM tour_guides WHERE user_id = ?");
                 $gStmt->bind_param("i", $userId);
                 $gStmt->execute();
                 $gRes = $gStmt->get_result();
-                $guideProfileImage = 'photos/default.jpg';
                 if ($row = $gRes->fetch_assoc()) {
                     $specificId = $row['guide_id'];
+                    $firstName = trim((string)($row['first_name'] ?? ''));
+                    $lastName = trim((string)($row['last_name'] ?? ''));
                     if (!empty($row['profile_image'])) {
-                        $guideProfileImage = addslashes($row['profile_image']);
+                        $profileImage = $row['profile_image'];
                     }
                 }
                 $gStmt->close();
             }
 
+            $fullName = trim($firstName . ' ' . $lastName);
+            if ($fullName === '') {
+                $fullName = $username;
+            }
+
+            $userIdJs = json_encode((string)$userId);
+            $roleJs = json_encode((string)$role);
+            $firstNameJs = json_encode($firstName);
+            $lastNameJs = json_encode($lastName);
+            $fullNameJs = json_encode($fullName);
+            $profileImageJs = json_encode($profileImage);
+
             // 5. Redirection Logic
             echo "<script>
                 localStorage.setItem('userLoggedIn', 'true');
-                localStorage.setItem('userId', '$userId');
-                localStorage.setItem('role', '$role');";
+                localStorage.setItem('userId', $userIdJs);
+                localStorage.setItem('role', $roleJs);
+                localStorage.setItem('firstName', $firstNameJs);
+                localStorage.setItem('lastName', $lastNameJs);
+                localStorage.setItem('fullName', $fullNameJs);
+                localStorage.setItem('firstName:' + $roleJs + ':' + $userIdJs, $firstNameJs);
+                localStorage.setItem('lastName:' + $roleJs + ':' + $userIdJs, $lastNameJs);
+                localStorage.setItem('profileName:' + $roleJs + ':' + $userIdJs, $fullNameJs);
+                localStorage.setItem('profileImage:' + $roleJs + ':' + $userIdJs, $profileImageJs);
+                localStorage.setItem('profileImage', $profileImageJs);";
 
             if ($role === 'admin') {
                 echo "window.location.href = 'adminDashboard.php';";
             } elseif ($role === 'guide') {
                 echo "localStorage.setItem('guideId', '$specificId');
-                      localStorage.setItem('profileImage:guide:$userId', '$guideProfileImage');
-                      localStorage.setItem('profileImage', '$guideProfileImage');
                       window.location.href = 'tourGuideDashboardNew.html';";
             } else {
                 echo "localStorage.setItem('touristId', '$specificId');
-                      localStorage.setItem('profileImage:tourist:$userId', '$touristProfileImage');
-                      localStorage.setItem('profileImage', '$touristProfileImage');
                       window.location.href = 'landingpage.html';";
             }
             

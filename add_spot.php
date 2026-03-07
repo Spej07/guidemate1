@@ -22,6 +22,10 @@ $philippinesBounds = [
 $defaultLatitude = isset($_POST['latitude']) && is_numeric($_POST['latitude']) ? (float) $_POST['latitude'] : 10.3156992;
 $defaultLongitude = isset($_POST['longitude']) && is_numeric($_POST['longitude']) ? (float) $_POST['longitude'] : 123.8854366;
 $defaultAddress = trim($_POST['address'] ?? '');
+$defaultFacilitiesServices = trim($_POST['facilities_services'] ?? '');
+$defaultContactInformation = trim($_POST['contact_information'] ?? '');
+$defaultCategorization = trim($_POST['categorization'] ?? '');
+$defaultIsMostVisited = !empty($_POST['is_most_visited']) ? 1 : 0;
 
 // Ensure destinations has the columns needed by the tourist cards and navigation map.
 $requiredColumns = [
@@ -32,6 +36,10 @@ $requiredColumns = [
     'price' => "ALTER TABLE destinations ADD COLUMN price VARCHAR(30) DEFAULT NULL",
     'latitude' => "ALTER TABLE destinations ADD COLUMN latitude DECIMAL(10,7) DEFAULT NULL",
     'longitude' => "ALTER TABLE destinations ADD COLUMN longitude DECIMAL(10,7) DEFAULT NULL",
+    'facilities_services' => "ALTER TABLE destinations ADD COLUMN facilities_services TEXT DEFAULT NULL",
+    'contact_information' => "ALTER TABLE destinations ADD COLUMN contact_information VARCHAR(255) DEFAULT NULL",
+    'categorization' => "ALTER TABLE destinations ADD COLUMN categorization VARCHAR(100) DEFAULT NULL",
+    'is_most_visited' => "ALTER TABLE destinations ADD COLUMN is_most_visited TINYINT(1) NOT NULL DEFAULT 0",
 ];
 foreach ($requiredColumns as $col => $sql) {
     $c = $mysqli->query("SHOW COLUMNS FROM destinations LIKE '$col'");
@@ -49,6 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price = trim($_POST['price'] ?? '');
     $latitude = isset($_POST['latitude']) ? trim($_POST['latitude']) : '';
     $longitude = isset($_POST['longitude']) ? trim($_POST['longitude']) : '';
+    $facilitiesServices = trim($_POST['facilities_services'] ?? '');
+    $contactInformation = trim($_POST['contact_information'] ?? '');
+    $categorization = trim($_POST['categorization'] ?? '');
+    $isMostVisited = !empty($_POST['is_most_visited']) ? 1 : 0;
 
     if (empty($name)) {
         $error = 'Please enter the spot name.';
@@ -83,17 +95,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $imagePath = trim($_POST['image_url']);
         }
 
-        $stmt = $mysqli->prepare("INSERT INTO destinations (name, description, address, image, rating, review_count, price, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $mysqli->prepare("INSERT INTO destinations (name, description, address, image, rating, review_count, price, latitude, longitude, facilities_services, contact_information, categorization, is_most_visited) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         if ($stmt) {
-            $stmt->bind_param('ssssdisdd', $name, $description, $address, $imagePath, $rating, $review_count, $price, $latitude, $longitude);
+            $stmt->bind_param('ssssdisddsssi', $name, $description, $address, $imagePath, $rating, $review_count, $price, $latitude, $longitude, $facilitiesServices, $contactInformation, $categorization, $isMostVisited);
             if ($stmt->execute()) {
                 $stmt->close();
                 $message = "Tourist spot \"{$name}\" added. It will appear on the landing page and in navigation routes.";
             } else {
                 $stmt->close();
-                $stmt2 = $mysqli->prepare("INSERT INTO destinations (name, description, address) VALUES (?, ?, ?)");
+                $stmt2 = $mysqli->prepare("INSERT INTO destinations (name, description, address, facilities_services, contact_information, categorization, is_most_visited) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 if ($stmt2) {
-                    $stmt2->bind_param('sss', $name, $description, $address);
+                    $stmt2->bind_param('ssssssi', $name, $description, $address, $facilitiesServices, $contactInformation, $categorization, $isMostVisited);
                     if ($stmt2->execute()) {
                         $stmt2->close();
                         $message = "Tourist spot \"{$name}\" added, but map coordinates could not be saved. Add coordinates to make it routable.";
@@ -192,6 +204,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-row">
                     <label for="price">Price (e.g. 2,500)</label>
                     <input type="text" id="price" name="price" placeholder="2,500" value="<?= isset($_POST['price']) ? htmlspecialchars($_POST['price']) : '' ?>">
+                </div>
+                <div class="form-row">
+                    <label for="facilities_services"><i data-feather="tool"></i> Facilities and services available</label>
+                    <textarea id="facilities_services" name="facilities_services" rows="3" placeholder="Parking, restrooms, guides, food stalls, cottages, shuttle service"><?= htmlspecialchars($defaultFacilitiesServices) ?></textarea>
+                </div>
+                <div class="form-row">
+                    <label for="contact_information"><i data-feather="phone"></i> Contact information (if applicable)</label>
+                    <input type="text" id="contact_information" name="contact_information" placeholder="Phone number, email, Facebook page, or office contact" value="<?= htmlspecialchars($defaultContactInformation) ?>">
+                </div>
+                <div class="form-row two-cols">
+                    <div>
+                        <label for="categorization"><i data-feather="tag"></i> Categorization</label>
+                        <select id="categorization" name="categorization">
+                            <option value="">Select category</option>
+                            <option value="Beach" <?= $defaultCategorization === 'Beach' ? 'selected' : '' ?>>Beach</option>
+                            <option value="Park" <?= $defaultCategorization === 'Park' ? 'selected' : '' ?>>Park</option>
+                            <option value="Museum" <?= $defaultCategorization === 'Museum' ? 'selected' : '' ?>>Museum</option>
+                            <option value="Historical Site" <?= $defaultCategorization === 'Historical Site' ? 'selected' : '' ?>>Historical Site</option>
+                            <option value="Mountain" <?= $defaultCategorization === 'Mountain' ? 'selected' : '' ?>>Mountain</option>
+                            <option value="Falls" <?= $defaultCategorization === 'Falls' ? 'selected' : '' ?>>Falls</option>
+                            <option value="Island" <?= $defaultCategorization === 'Island' ? 'selected' : '' ?>>Island</option>
+                            <option value="Temple / Church" <?= $defaultCategorization === 'Temple / Church' ? 'selected' : '' ?>>Temple / Church</option>
+                            <option value="Adventure Spot" <?= $defaultCategorization === 'Adventure Spot' ? 'selected' : '' ?>>Adventure Spot</option>
+                            <option value="Other" <?= $defaultCategorization === 'Other' ? 'selected' : '' ?>>Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="is_most_visited"><i data-feather="star"></i> Most Visited Destinations Section</label>
+                        <select id="is_most_visited" name="is_most_visited">
+                            <option value="0" <?= !$defaultIsMostVisited ? 'selected' : '' ?>>No</option>
+                            <option value="1" <?= $defaultIsMostVisited ? 'selected' : '' ?>>Yes</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-row two-cols">
                     <div>
