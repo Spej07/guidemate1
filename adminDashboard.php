@@ -1156,7 +1156,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                                     var checkbox = row.querySelector('.spot-row-checkbox');
                                                     if (checkbox) checkbox.checked = false;
                                                 }
-                                            }
+                                            });
                                             if (selectAll) selectAll.checked = false;
                                         } else {
                                             showAdminNotice(res.error || 'Could not mark spots as unavailable.');
