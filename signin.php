@@ -18,7 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
-            $_SESSION['username'] = $username;
 
             $role = $user['role'];
             $specificId = '';
@@ -57,12 +56,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 $gStmt->close();
+            } elseif ($role === 'admin') {
+                $aStmt = $mysqli->prepare("SELECT admin_id, first_name, last_name, profile_image FROM admins WHERE user_id = ? LIMIT 1");
+                $aStmt->bind_param("i", $user['id']);
+                $aStmt->execute();
+                $aRes = $aStmt->get_result();
+                if ($aRow = $aRes->fetch_assoc()) {
+                    $specificId = $aRow['admin_id'];
+                    $firstName = trim((string)($aRow['first_name'] ?? ''));
+                    $lastName = trim((string)($aRow['last_name'] ?? ''));
+                    if (!empty($aRow['profile_image'])) {
+                        $profileImage = $aRow['profile_image'];
+                    }
+                }
+                $aStmt->close();
             }
 
             $fullName = trim($firstName . ' ' . $lastName);
             if ($fullName === '') {
                 $fullName = $username;
             }
+            $_SESSION['username'] = $fullName;
 
             $userIdJs = json_encode((string)$user['id']);
             $roleJs = json_encode((string)$role);

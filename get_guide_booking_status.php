@@ -25,6 +25,9 @@ if ($guide_id <= 0) {
 $stmt = $mysqli->prepare("SELECT
         gb.booking_id,
         gb.created_at,
+        gb.meet_time,
+        gb.meeting_location,
+        gb.tourist_message,
         gb.approved_at,
         TRIM(CONCAT(COALESCE(t.first_name, ''), ' ', COALESCE(t.last_name, ''))) AS tourist_name
     FROM guide_bookings gb
@@ -48,6 +51,9 @@ echo json_encode([
     'booking_id' => (int) $row['booking_id'],
     'tourist_name' => trim($row['tourist_name'] ?? '') ?: 'Tourist',
     'created_at' => $row['created_at'] ?? null,
+    'meet_time' => $row['meet_time'] ?? null,
+    'meeting_location' => $row['meeting_location'] ?? '',
+    'tourist_message' => $row['tourist_message'] ?? '',
     'approved_at' => $row['approved_at'] ?? null
 ]);
 ?>

@@ -16,6 +16,9 @@ function ensure_guide_bookings_table(mysqli $mysqli)
         guide_id INT UNSIGNED NOT NULL,
         status VARCHAR(20) NOT NULL DEFAULT 'Pending',
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        meet_time DATETIME NULL DEFAULT NULL,
+        meeting_location VARCHAR(255) NULL DEFAULT NULL,
+        tourist_message TEXT NULL,
         approved_at DATETIME NULL DEFAULT NULL,
         INDEX idx_guide_bookings_status (status),
         INDEX idx_guide_bookings_guide (guide_id),
@@ -30,7 +33,127 @@ function ensure_guide_bookings_table(mysqli $mysqli)
         $mysqli->query("ALTER TABLE guide_bookings ADD COLUMN approved_at DATETIME NULL DEFAULT NULL AFTER created_at");
     }
 
+    if (!guide_bookings_column_exists($mysqli, 'guide_bookings', 'meet_time')) {
+        $mysqli->query("ALTER TABLE guide_bookings ADD COLUMN meet_time DATETIME NULL DEFAULT NULL AFTER created_at");
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'guide_bookings', 'meeting_location')) {
+        $mysqli->query("ALTER TABLE guide_bookings ADD COLUMN meeting_location VARCHAR(255) NULL DEFAULT NULL AFTER meet_time");
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'guide_bookings', 'tourist_message')) {
+        $mysqli->query("ALTER TABLE guide_bookings ADD COLUMN tourist_message TEXT NULL AFTER meeting_location");
+    }
+
     return !$mysqli->error;
+}
+
+function ensure_booking_messages_table(mysqli $mysqli)
+{
+    $sql = "CREATE TABLE IF NOT EXISTS booking_messages (
+        message_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        booking_id INT UNSIGNED NOT NULL,
+        guide_id INT UNSIGNED NOT NULL,
+        tourist_user_id INT UNSIGNED NOT NULL,
+        sender_role VARCHAR(20) NOT NULL,
+        sender_user_id INT UNSIGNED NOT NULL,
+        message_text TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_booking_messages_booking (booking_id),
+        INDEX idx_booking_messages_sender (sender_user_id),
+        INDEX idx_booking_messages_guide (guide_id),
+        INDEX idx_booking_messages_tourist (tourist_user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (!$mysqli->query($sql)) {
+        return false;
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'booking_messages', 'guide_id')) {
+        $mysqli->query("ALTER TABLE booking_messages ADD COLUMN guide_id INT UNSIGNED NOT NULL DEFAULT 0 AFTER booking_id");
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'booking_messages', 'tourist_user_id')) {
+        $mysqli->query("ALTER TABLE booking_messages ADD COLUMN tourist_user_id INT UNSIGNED NOT NULL DEFAULT 0 AFTER guide_id");
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'booking_messages', 'sender_role')) {
+        $mysqli->query("ALTER TABLE booking_messages ADD COLUMN sender_role VARCHAR(20) NOT NULL DEFAULT 'guide' AFTER tourist_user_id");
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'booking_messages', 'sender_user_id')) {
+        $mysqli->query("ALTER TABLE booking_messages ADD COLUMN sender_user_id INT UNSIGNED NOT NULL DEFAULT 0 AFTER sender_role");
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'booking_messages', 'message_text')) {
+        $mysqli->query("ALTER TABLE booking_messages ADD COLUMN message_text TEXT NOT NULL AFTER sender_user_id");
+    }
+
+    if (!guide_bookings_column_exists($mysqli, 'booking_messages', 'created_at')) {
+        $mysqli->query("ALTER TABLE booking_messages ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER message_text");
+    }
+
+    return !$mysqli->error;
+}
+
+function normalize_booking_meet_time($value)
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return null;
+    }
+
+    $formats = [
+        'Y-m-d\TH:i',
+        'Y-m-d\TH:i:s',
+        'Y-m-d H:i',
+        'Y-m-d H:i:s'
+    ];
+
+    foreach ($formats as $format) {
+        $date = DateTime::createFromFormat($format, $value);
+        $errors = DateTime::getLastErrors();
+        $warningCount = is_array($errors) ? (int) ($errors['warning_count'] ?? 0) : 0;
+        $errorCount = is_array($errors) ? (int) ($errors['error_count'] ?? 0) : 0;
+        if ($date instanceof DateTime && $warningCount === 0 && $errorCount === 0) {
+            return $date->format('Y-m-d H:i:s');
+        }
+    }
+
+    $timestamp = strtotime($value);
+    if ($timestamp !== false) {
+        return date('Y-m-d H:i:s', $timestamp);
+    }
+
+    return null;
+}
+
+function normalize_booking_location($value)
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (mb_strlen($value) > 255) {
+        $value = mb_substr($value, 0, 255);
+    }
+
+    return $value;
+}
+
+function normalize_booking_message($value)
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (mb_strlen($value) > 1000) {
+        $value = mb_substr($value, 0, 1000);
+    }
+
+    return $value;
 }
 
 function get_tourist_by_user_id(mysqli $mysqli, $userId)

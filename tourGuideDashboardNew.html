@@ -17,21 +17,44 @@
             margin-bottom: 40px;
         }
         .review-item {
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            width: 100%;
+            box-sizing: border-box;
+            padding: 18px 20px;
+            border-left: 4px solid #10b981;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: inset 0 0 0 1px rgba(20, 39, 61, 0.04);
         }
         .review-item:last-child { border-bottom: none; }
         .review-panel-box {
             margin-top: 12px;
             border: 2px solid rgba(20, 39, 61, 0.14);
             border-radius: 20px;
-            padding: 16px;
+            padding: 18px;
             background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-sizing: border-box;
+        }
+        #recentFeedbackList {
+            width: 100%;
+        }
+        .review-quote {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #24364b;
+        }
+        .review-meta {
+            display: block;
+            margin-top: 8px;
+            color: #7a7f87;
+            font-size: 0.8rem;
         }
         .review-reply-link {
             display: block;
             width: 100%;
-            margin-top: 14px;
             padding: 16px 18px;
             border: 2px solid #24364b;
             border-radius: 18px;
@@ -42,6 +65,7 @@
             text-transform: uppercase;
             color: #24364b;
             background: #fff;
+            box-sizing: border-box;
         }
         .review-reply-link:hover {
             background: #f7f9fc;
@@ -52,6 +76,134 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+        }
+        .message-modal[hidden] {
+            display: none;
+        }
+        .message-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(9, 21, 38, 0.62);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+        .message-modal-card {
+            width: min(680px, 100%);
+            max-height: 88vh;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 45px rgba(12, 28, 48, 0.24);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .message-modal-header {
+            padding: 22px 24px 16px;
+            border-bottom: 1px solid rgba(20, 39, 61, 0.08);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .message-modal-header h3 {
+            margin: 0;
+            color: #13263a;
+        }
+        .message-modal-header p {
+            margin: 6px 0 0;
+            color: #6b7280;
+            font-size: 0.92rem;
+        }
+        .message-close-btn {
+            border: none;
+            background: #eef2f7;
+            color: #24364b;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .message-thread {
+            padding: 20px 24px;
+            background: #f7fafc;
+            overflow-y: auto;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message-bubble {
+            max-width: 82%;
+            padding: 14px 16px;
+            border-radius: 18px;
+            box-shadow: 0 4px 12px rgba(20, 39, 61, 0.06);
+            background: #fff;
+            color: #213547;
+        }
+        .message-bubble.guide {
+            align-self: flex-end;
+            background: #dff7ea;
+        }
+        .message-bubble.tourist {
+            align-self: flex-start;
+            background: #fff;
+        }
+        .message-bubble strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #667085;
+        }
+        .message-bubble p {
+            margin: 0;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        .message-bubble small {
+            display: block;
+            margin-top: 8px;
+            color: #7a7f87;
+            font-size: 0.78rem;
+        }
+        .message-empty {
+            text-align: center;
+            color: #7a7f87;
+            padding: 34px 12px;
+        }
+        .message-composer {
+            padding: 18px 24px 24px;
+            border-top: 1px solid rgba(20, 39, 61, 0.08);
+            background: #fff;
+        }
+        .message-status {
+            min-height: 20px;
+            margin-top: 10px;
+            color: #6b7280;
+            font-size: 0.88rem;
+        }
+        .message-status.error {
+            color: #b42318;
+        }
+        .message-status.success {
+            color: #027a48;
+        }
+        #bookingMessageInput {
+            width: 100%;
+            min-height: 110px;
+            padding: 14px 16px;
+            border: 1px solid rgba(20, 39, 61, 0.12);
+            border-radius: 16px;
+            resize: vertical;
+            font: inherit;
+            color: #213547;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -85,9 +237,9 @@
         <h1 id="bookingHeroTitle">No approved booking yet</h1>
         <p id="bookingHeroText">When an admin approves a tourist's booking request, the tourist name will appear here.</p>
         <p id="bookingHeroMeta" style="font-weight: 600; color: rgba(255,255,255,0.92); margin-top: 10px;"></p>
-        <div id="bookingHeroActions" style="display: none;">
+        <div id="bookingHeroActions" style="display: none; gap: 12px; flex-wrap: wrap;">
             <button class="btn btn-primary" style="background: white; color: var(--accent);">ACTIVATE GPS</button>
-            <button class="btn btn-primary" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px);">GUEST MANIFEST</button>
+            <button id="heroMessageTouristBtn" class="btn btn-primary" style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px);">MESSAGE TOURIST</button>
         </div>
     </section>
 
@@ -105,27 +257,6 @@
                     <h1 id="guideName" style="margin: 0; font-size: 1.8rem;">Guide</h1>
                     <p style="margin: 5px 0 0; color: var(--accent); font-weight: 600;">★ <span id="ratingText">—</span> <span id="ratingCountText">(0 reviews)</span></p>
                     <a href="tourGuideProfile.html" style="font-size: 0.85rem; color: var(--accent); margin-top: 6px; display: inline-block;">Manage full profile →</a>
-                </div>
-            </div>
-
-            <div class="glass-card" style="margin-bottom: 24px; padding: 20px;">
-                <h3 style="margin: 0 0 16px 0; font-size: 1.1rem;">Update services offered &amp; profile</h3>
-                <p style="color: #666; font-size: 0.9rem; margin-bottom: 16px;">Services, experience, and service area.</p>
-                <div style="display: grid; gap: 16px; max-width: 400px;">
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #333;">Services offered / Specialization</label>
-                        <input type="text" id="specialization" placeholder="e.g. Adventure tours, Island hopping" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #333;">Years of experience</label>
-                        <input type="number" id="experienceYears" min="0" max="70" value="0" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #333;">Location / Service area</label>
-                        <input type="text" id="serviceAreas" placeholder="e.g. Cebu City, Badian, Moalboal" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
-                    </div>
-                    <button type="button" id="saveProfileBtn" class="btn btn-primary" style="width: 100%;">Save</button>
-                    <p id="profileSaveMessage" style="margin: 0; font-size: 0.85rem; display: none;"></p>
                 </div>
             </div>
         </div>
@@ -162,9 +293,9 @@
         <div class="card-container">
             <div class="glass-card">
                 <div class="icon-box"><i data-feather="calendar"></i></div>
-                <h3 style="margin-top: 0;">My Schedule</h3>
-                <p>You have 3 upcoming tours this week including the Simala Shrine pilgrimage.</p>
-                <button class="btn btn-outline" style="width: 100%;">VIEW ALL</button>
+                <h3 id="scheduleCardTitle" style="margin-top: 0;">My Schedule</h3>
+                <p id="scheduleCardText">No approved tourist booking yet. Your current guide assignment will appear here once an admin approves it.</p>
+                <button id="scheduleCardButton" class="btn btn-outline" style="width: 100%;">VIEW STATUS</button>
             </div>
 
             <div class="glass-card">
@@ -185,15 +316,15 @@
         <div class="review-grid">
             <div class="glass-card task-card">
                 <div class="task-header">
-                    <span style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">08:00 AM</span>
-                    <span style="font-size: 0.75rem; background: #f0f0f0; padding: 4px 10px; border-radius: 6px; font-weight: 600; color: #666;">UPCOMING</span>
+                    <span id="bookingTaskTime" style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">--:--</span>
+                    <span id="bookingTaskStatus" style="font-size: 0.75rem; background: #f0f0f0; padding: 4px 10px; border-radius: 6px; font-weight: 600; color: #666;">OPEN</span>
                 </div>
-                <h3 style="margin: 0 0 10px 0;">Bantayan Island Hopping</h3>
-                <p style="margin: 5px 0;"><i data-feather="map-pin" style="width: 16px;"></i> Sta. Fe Port Meeting Point</p>
-                <p style="margin: 5px 0;"><i data-feather="users" style="width: 16px;"></i> 8 Travelers</p>
+                <h3 id="bookingTaskTitle" style="margin: 0 0 10px 0;">No active booking</h3>
+                <p id="bookingTaskPrimaryLine" style="margin: 5px 0;"><i data-feather="users" style="width: 16px;"></i> Waiting for a tourist booking.</p>
+                <p id="bookingTaskSecondaryLine" style="margin: 5px 0;"><i data-feather="calendar" style="width: 16px;"></i> Approved booking details will appear here.</p>
                 <div style="display: flex; gap: 12px; margin-top: 20px;">
                     <button class="btn btn-primary" style="flex: 1;">Check-in</button>
-                    <button class="btn btn-outline" style="flex: 1;">Contact</button>
+                    <button id="bookingMessageBtn" class="btn btn-outline" style="flex: 1;" disabled>Contact</button>
                 </div>
             </div>
 
@@ -206,6 +337,28 @@
         </div>
     </section>
 </main>
+
+<div class="message-modal" id="guideMessageModal" hidden>
+    <div class="message-modal-card" role="dialog" aria-modal="true" aria-labelledby="guideMessageModalTitle">
+        <div class="message-modal-header">
+            <div>
+                <h3 id="guideMessageModalTitle">Booking Messages</h3>
+                <p id="guideMessageModalSubtitle">Use this chat to coordinate the meetup with your tourist.</p>
+            </div>
+            <button type="button" class="message-close-btn" id="guideMessageModalClose" aria-label="Close">×</button>
+        </div>
+        <div class="message-thread" id="guideMessageThread">
+            <div class="message-empty">Select a booked tourist to start messaging.</div>
+        </div>
+        <div class="message-composer">
+            <textarea id="bookingMessageInput" maxlength="1000" placeholder="Type a message for your tourist..."></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px;">
+                <span id="bookingMessageStatus" class="message-status" aria-live="polite"></span>
+                <button type="button" class="btn btn-primary" id="sendBookingMessageBtn">Send message</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="logout_modal.js"></script>
 <script src="tourGuideDashboardNew.js"></script>

@@ -40,6 +40,7 @@ $requiredColumns = [
     'contact_information' => "ALTER TABLE destinations ADD COLUMN contact_information VARCHAR(255) DEFAULT NULL",
     'categorization' => "ALTER TABLE destinations ADD COLUMN categorization VARCHAR(100) DEFAULT NULL",
     'is_most_visited' => "ALTER TABLE destinations ADD COLUMN is_most_visited TINYINT(1) NOT NULL DEFAULT 0",
+    'is_available' => "ALTER TABLE destinations ADD COLUMN is_available TINYINT(1) NOT NULL DEFAULT 1",
 ];
 foreach ($requiredColumns as $col => $sql) {
     $c = $mysqli->query("SHOW COLUMNS FROM destinations LIKE '$col'");
@@ -95,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $imagePath = trim($_POST['image_url']);
         }
 
-        $stmt = $mysqli->prepare("INSERT INTO destinations (name, description, address, image, rating, review_count, price, latitude, longitude, facilities_services, contact_information, categorization, is_most_visited) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $mysqli->prepare("INSERT INTO destinations (name, description, address, image, rating, review_count, price, latitude, longitude, facilities_services, contact_information, categorization, is_most_visited, is_available) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)");
         if ($stmt) {
             $stmt->bind_param('ssssdisddsssi', $name, $description, $address, $imagePath, $rating, $review_count, $price, $latitude, $longitude, $facilitiesServices, $contactInformation, $categorization, $isMostVisited);
             if ($stmt->execute()) {
@@ -103,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Tourist spot \"{$name}\" added. It will appear on the landing page and in navigation routes.";
             } else {
                 $stmt->close();
-                $stmt2 = $mysqli->prepare("INSERT INTO destinations (name, description, address, facilities_services, contact_information, categorization, is_most_visited) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt2 = $mysqli->prepare("INSERT INTO destinations (name, description, address, facilities_services, contact_information, categorization, is_most_visited, is_available) VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
                 if ($stmt2) {
                     $stmt2->bind_param('ssssssi', $name, $description, $address, $facilitiesServices, $contactInformation, $categorization, $isMostVisited);
                     if ($stmt2->execute()) {

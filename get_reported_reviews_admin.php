@@ -41,6 +41,7 @@ if ($result) {
 
         $reviews[] = [
             'review_id' => (int)$row['review_id'],
+            'guide_id' => isset($row['guide_id']) ? (int)$row['guide_id'] : 0,
             'tourist_name' => $touristName,
             'guide_name' => $guideName,
             'location_name' => $parsed['location_name'],

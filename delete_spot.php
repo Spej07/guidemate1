@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin: delete a tourist spot (destination) when it's unavailable.
+ * Admin: toggle tourist spot availability without deleting the record.
  */
 session_start();
 require_once 'dbconnect.php';
@@ -14,33 +14,35 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 $destination_id = isset($_POST['destination_id']) ? (int) $_POST['destination_id'] : 0;
+$is_available = isset($_POST['is_available']) ? (int) $_POST['is_available'] : 0;
 
 if ($destination_id <= 0) {
     echo json_encode(['ok' => false, 'error' => 'Invalid spot.']);
     exit;
 }
 
-// Remove related photos first if table exists (avoids FK issues)
-$check = $mysqli->query("SHOW TABLES LIKE 'destination_photos'");
-if ($check && $check->num_rows > 0) {
-    $delPhotos = $mysqli->prepare("DELETE FROM destination_photos WHERE destination_id = ?");
-    if ($delPhotos) {
-        $delPhotos->bind_param('i', $destination_id);
-        $delPhotos->execute();
-        $delPhotos->close();
-    }
+if ($is_available !== 0 && $is_available !== 1) {
+    echo json_encode(['ok' => false, 'error' => 'Invalid availability value.']);
+    exit;
 }
 
-$stmt = $mysqli->prepare("DELETE FROM destinations WHERE destination_id = ?");
+// Create the flag on older databases instead of deleting the spot.
+$col = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'is_available'");
+if (!$col || $col->num_rows === 0) {
+    $mysqli->query("ALTER TABLE destinations ADD COLUMN is_available TINYINT(1) NOT NULL DEFAULT 1");
+}
+
+$stmt = $mysqli->prepare("UPDATE destinations SET is_available = ? WHERE destination_id = ?");
 if (!$stmt) {
     echo json_encode(['ok' => false, 'error' => 'Database error.']);
     exit;
 }
-$stmt->bind_param('i', $destination_id);
+$stmt->bind_param('ii', $is_available, $destination_id);
 if ($stmt->execute()) {
+    $updated = $stmt->affected_rows;
     $stmt->close();
-    echo json_encode(['ok' => true]);
+    echo json_encode(['ok' => true, 'is_available' => $is_available, 'updated' => $updated]);
 } else {
     $stmt->close();
-    echo json_encode(['ok' => false, 'error' => 'Could not delete.']);
+    echo json_encode(['ok' => false, 'error' => 'Could not update availability.']);
 }

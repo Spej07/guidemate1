@@ -24,13 +24,37 @@ $response = [
     'first_name' => '',
     'last_name' => '',
     'full_name' => $username !== '' ? $username : 'Guest Traveler',
-    'profile_image' => 'photos/default.jpg'
+    'profile_image' => 'photos/default.jpg',
+    'can_change_profile_image' => true,
+    'next_profile_image_change_at' => null,
+    'profile_image_cooldown_days' => null
 ];
 
+$table = '';
+$cooldownDays = 0;
+$hasProfileImageUpdatedAt = false;
+
 if ($role === 'tourist') {
-    $stmt = $mysqli->prepare('SELECT first_name, last_name, profile_image FROM tourists WHERE user_id = ? LIMIT 1');
+    $table = 'tourists';
+    $cooldownDays = 15;
 } elseif ($role === 'guide') {
-    $stmt = $mysqli->prepare('SELECT first_name, last_name, profile_image FROM tour_guides WHERE user_id = ? LIMIT 1');
+    $table = 'tour_guides';
+    $cooldownDays = 30;
+} elseif ($role === 'admin') {
+    $table = 'admins';
+}
+
+if ($table !== '') {
+    $col = $mysqli->query("SHOW COLUMNS FROM {$table} LIKE 'profile_image_updated_at'");
+    if ($col && $col->num_rows > 0) {
+        $hasProfileImageUpdatedAt = true;
+    }
+    $response['profile_image_cooldown_days'] = $cooldownDays;
+    $select = 'first_name, last_name, profile_image';
+    if ($hasProfileImageUpdatedAt) {
+        $select .= ', profile_image_updated_at';
+    }
+    $stmt = $mysqli->prepare("SELECT {$select} FROM {$table} WHERE user_id = ? LIMIT 1");
 } else {
     $stmt = null;
 }
@@ -45,6 +69,14 @@ if ($stmt) {
         $response['full_name'] = trim($response['first_name'] . ' ' . $response['last_name']) ?: $response['full_name'];
         if (!empty($row['profile_image'])) {
             $response['profile_image'] = (string)$row['profile_image'];
+        }
+        if ($hasProfileImageUpdatedAt && !empty($row['profile_image_updated_at']) && $cooldownDays > 0) {
+            $lastTs = strtotime((string)$row['profile_image_updated_at']);
+            $nextAllowed = strtotime('+' . $cooldownDays . ' days', $lastTs);
+            if ($lastTs && $nextAllowed && time() < $nextAllowed) {
+                $response['can_change_profile_image'] = false;
+                $response['next_profile_image_change_at'] = date('Y-m-d', $nextAllowed);
+            }
         }
     }
     $stmt->close();

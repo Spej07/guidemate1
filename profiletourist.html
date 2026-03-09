@@ -38,12 +38,33 @@
     <h1 id="profileName">Loading...</h1> 
     <p class="handle" id="profileHandle">@username</p> 
 </div>
-<div class="header-actions">
-    <input type="file" id="imageInput" style="display: none;" accept="image/*">
-    <button class="edit-btn" id="editProfileBtn">Edit profile</button>
-    <button class="settings-btn">⚙️</button>
-</div>
+        <button type="button" class="edit-profile-toggle" id="editProfileToggle">Edit profile</button>
     </div>
+    <div id="profileNotice" class="profile-notice" aria-live="polite"></div>
+    <section class="profile-edit-panel" id="profileEditPanel" hidden>
+        <form id="touristProfileForm" class="profile-edit-form" enctype="multipart/form-data">
+            <div class="profile-edit-grid">
+                <div class="profile-field">
+                    <label for="editFirstName">First name</label>
+                    <input type="text" id="editFirstName" name="first_name" maxlength="50" required>
+                </div>
+                <div class="profile-field">
+                    <label for="editLastName">Last name</label>
+                    <input type="text" id="editLastName" name="last_name" maxlength="50" required>
+                </div>
+            </div>
+            <div class="profile-field">
+                <label for="editProfileImage">Profile photo</label>
+                <input type="file" id="editProfileImage" name="profile_image" accept="image/png,image/jpeg,image/gif">
+                <p class="profile-edit-help">Leave this empty if you only want to update your name.</p>
+                <p class="profile-edit-help profile-cooldown-text" id="profilePicCooldownText"></p>
+            </div>
+            <div class="profile-edit-actions">
+                <button type="submit" class="profile-primary-btn" id="saveProfileChangesBtn">Save changes</button>
+                <button type="button" class="profile-secondary-btn" id="cancelProfileEdit">Cancel</button>
+            </div>
+        </form>
+    </section>
     
     <nav class="profile-tabs">
         <a href="#" class="active">Activity feed</a>

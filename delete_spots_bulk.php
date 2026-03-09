@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin: delete multiple tourist spots at once.
+ * Admin: update availability for multiple tourist spots at once.
  * POST: destination_ids[] (array of destination_id integers)
  */
 session_start();
@@ -24,27 +24,21 @@ if (empty($ids)) {
     exit;
 }
 
-$check = $mysqli->query("SHOW TABLES LIKE 'destination_photos'");
-$hasPhotos = $check && $check->num_rows > 0;
+$col = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'is_available'");
+if (!$col || $col->num_rows === 0) {
+    $mysqli->query("ALTER TABLE destinations ADD COLUMN is_available TINYINT(1) NOT NULL DEFAULT 1");
+}
 
-$deleted = 0;
+$updated = 0;
 foreach ($ids as $destination_id) {
-    if ($hasPhotos) {
-        $delPhotos = $mysqli->prepare("DELETE FROM destination_photos WHERE destination_id = ?");
-        if ($delPhotos) {
-            $delPhotos->bind_param('i', $destination_id);
-            $delPhotos->execute();
-            $delPhotos->close();
-        }
-    }
-    $stmt = $mysqli->prepare("DELETE FROM destinations WHERE destination_id = ?");
+    $stmt = $mysqli->prepare("UPDATE destinations SET is_available = 0 WHERE destination_id = ?");
     if ($stmt) {
         $stmt->bind_param('i', $destination_id);
         if ($stmt->execute() && $stmt->affected_rows > 0) {
-            $deleted++;
+            $updated++;
         }
         $stmt->close();
     }
 }
 
-echo json_encode(['ok' => true, 'deleted' => $deleted]);
+echo json_encode(['ok' => true, 'updated' => $updated]);

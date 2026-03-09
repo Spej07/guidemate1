@@ -20,6 +20,7 @@ $sql = "SELECT
             gb.booking_id,
             gb.approved_at,
             gb.created_at,
+            gb.meet_time,
             TRIM(CONCAT(COALESCE(t.first_name, ''), ' ', COALESCE(t.last_name, ''))) AS tourist_name,
             TRIM(CONCAT(COALESCE(g.first_name, ''), ' ', COALESCE(g.last_name, ''))) AS guide_name
         FROM guide_bookings gb
@@ -37,7 +38,8 @@ if ($result) {
             'tourist_name' => trim($row['tourist_name'] ?? '') ?: 'Tourist',
             'guide_name' => trim($row['guide_name'] ?? '') ?: 'Guide',
             'approved_at' => $row['approved_at'] ?? '',
-            'created_at' => $row['created_at'] ?? ''
+            'created_at' => $row['created_at'] ?? '',
+            'meet_time' => $row['meet_time'] ?? ''
         ];
     }
 }

@@ -57,7 +57,7 @@ async function loadLocationsFromDb() {
         const res = await fetch(endpoint, { credentials: 'same-origin', signal: controller.signal });
         clearTimeout(timeout);
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
             locationData = data;
         }
     } catch (e) {

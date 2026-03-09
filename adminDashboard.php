@@ -54,97 +54,105 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     <section class="pending-guides-section">
         <h2 class="panel-section-title">User management panel</h2>
     </section>
-    <section class="pending-guides-section">
-        <div class="panel pending-panel">
-            <div class="panel-head">
-                <h3>All tour guides</h3>
-                <span class="pending-subtitle">Complete list of all registered tour guides and their status (Pending, Active on landing page, or Suspended).</span>
+    <div class="guide-management-grid guide-management-grid--stacked">
+        <section class="pending-guides-section guide-management-grid-item">
+            <div class="panel pending-panel">
+                <div class="panel-head">
+                    <h3>All tour guides</h3>
+                    <span class="pending-subtitle">Complete list of all registered tour guides and their status (Pending, Active on landing page, or Suspended).</span>
+                </div>
+                <div id="allGuidesContainer">
+                    <p class="pending-loading" id="allGuidesLoading">Loading…</p>
+                    <table class="pending-table" id="allGuidesTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Guide</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allGuidesBody"></tbody>
+                    </table>
+                    <p class="pending-empty" id="allGuidesEmpty" style="display: none;">No tour guides registered yet.</p>
+                </div>
             </div>
-            <div id="allGuidesContainer">
-                <p class="pending-loading" id="allGuidesLoading">Loading…</p>
-                <table class="pending-table" id="allGuidesTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Guide</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="allGuidesBody"></tbody>
-                </table>
-                <p class="pending-empty" id="allGuidesEmpty" style="display: none;">No tour guides registered yet.</p>
-            </div>
-        </div>
-    </section>
-    <section class="pending-guides-section">
-        <div class="panel pending-panel">
-            <div class="panel-head">
-                <h3>Manage tour guides – Add to landing page</h3>
-                <span class="pending-subtitle">Newly registered guides appear below. Approve each one to add them to the landing page so tourists can search and book them.</span>
-            </div>
-            <div id="pendingGuidesContainer">
-                <p class="pending-loading" id="pendingLoading">Loading…</p>
-                <table class="pending-table" id="pendingGuidesTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Guide</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pendingGuidesBody"></tbody>
-                </table>
-                <p class="pending-empty" id="pendingEmpty" style="display: none;">No pending guides. When a guide registers, they will appear here for you to add to the landing page.</p>
-            </div>
-        </div>
-    </section>
+        </section>
+        <div class="guide-management-side-stack">
+            <section class="pending-guides-section guide-management-grid-item">
+                <div class="panel pending-panel">
+                    <div class="panel-head">
+                        <h3>Manage tour guides – Add to landing page</h3>
+                        <span class="pending-subtitle">Newly registered guides appear below. Approve each one to add them to the landing page so tourists can search and book them.</span>
+                    </div>
+                    <div id="pendingGuidesContainer">
+                        <p class="pending-loading" id="pendingLoading">Loading…</p>
+                        <table class="pending-table" id="pendingGuidesTable" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Guide</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingGuidesBody"></tbody>
+                        </table>
+                        <p class="pending-empty" id="pendingEmpty" style="display: none;">No pending guides. When a guide registers, they will appear here for you to add to the landing page.</p>
+                    </div>
+                </div>
+            </section>
 
-    <section class="pending-guides-section">
-        <div class="panel pending-panel">
-            <div class="panel-head">
-                <h3>Pending guide bookings</h3>
-                <span class="pending-subtitle">Tourist booking requests appear here. Approve one to mark the guide as booked by that tourist.</span>
-            </div>
-            <div id="pendingBookingsContainer">
-                <p class="pending-loading" id="pendingBookingsLoading">Loading…</p>
-                <table class="pending-table" id="pendingBookingsTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Tourist</th>
-                            <th>Guide</th>
-                            <th>Requested</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pendingBookingsBody"></tbody>
-                </table>
-                <p class="pending-empty" id="pendingBookingsEmpty" style="display: none;">No pending booking requests.</p>
-            </div>
-        </div>
-    </section>
+            <div class="guide-management-side-stack">
+                <section class="pending-guides-section guide-management-grid-item">
+                    <div class="panel pending-panel">
+                        <div class="panel-head">
+                            <h3>Pending guide bookings</h3>
+                            <span class="pending-subtitle">Tourist booking requests appear here with their requested meet time. Approve one to confirm the guide is available for that schedule.</span>
+                        </div>
+                        <div id="pendingBookingsContainer">
+                            <p class="pending-loading" id="pendingBookingsLoading">Loading…</p>
+                            <table class="pending-table" id="pendingBookingsTable" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>Tourist</th>
+                                        <th>Guide</th>
+                                        <th>Requested</th>
+                                        <th>Meet time</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pendingBookingsBody"></tbody>
+                            </table>
+                            <p class="pending-empty" id="pendingBookingsEmpty" style="display: none;">No pending booking requests.</p>
+                        </div>
+                    </div>
+                </section>
 
-    <section class="pending-guides-section">
-        <div class="panel pending-panel">
-            <div class="panel-head">
-                <h3>Approved guide bookings</h3>
-                <span class="pending-subtitle">After the booked day is finished, click the button below to make that guide available for new tourists again.</span>
-            </div>
-            <div id="approvedBookingsContainer">
-                <p class="pending-loading" id="approvedBookingsLoading">Loading…</p>
-                <table class="pending-table" id="approvedBookingsTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Tourist</th>
-                            <th>Guide</th>
-                            <th>Approved</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="approvedBookingsBody"></tbody>
-                </table>
-                <p class="pending-empty" id="approvedBookingsEmpty" style="display: none;">No approved guide bookings right now.</p>
+                <section class="pending-guides-section guide-management-grid-item">
+                    <div class="panel pending-panel">
+                        <div class="panel-head">
+                            <h3>Approved guide bookings</h3>
+                            <span class="pending-subtitle">Approved bookings show the confirmed meet time. After the booked day is finished, click the button below to make that guide available for new tourists again.</span>
+                        </div>
+                        <div id="approvedBookingsContainer">
+                            <p class="pending-loading" id="approvedBookingsLoading">Loading…</p>
+                            <table class="pending-table" id="approvedBookingsTable" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th>Tourist</th>
+                                        <th>Guide</th>
+                                        <th>Approved</th>
+                                        <th>Meet time</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approvedBookingsBody"></tbody>
+                            </table>
+                            <p class="pending-empty" id="approvedBookingsEmpty" style="display: none;">No approved guide bookings right now.</p>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
-    </section>
+    </div>
 
     <section class="pending-guides-section">
         <div class="panel pending-panel">
@@ -200,12 +208,12 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
         <div class="panel pending-panel">
             <div class="panel-head">
                 <h3>Manage tourist spots</h3>
-                <span class="pending-subtitle">Every tourist spot is listed below. Select multiple and delete duplicates or unavailable spots at once. Change the price or delete a spot if it’s unavailable (it will be removed from the landing page).</span>
+                <span class="pending-subtitle">Every tourist spot is listed below. Change the price, mark a spot unavailable so it is hidden from the landing page, or switch it back to available at any time.</span>
             </div>
             <div id="spotsPriceContainer">
                 <p class="pending-loading" id="spotsPriceLoading">Loading…</p>
                 <div id="spotsBulkActions" style="display: none; margin-bottom: 0.5rem;">
-                    <button type="button" class="delete-spots-bulk-btn" id="deleteSpotsBulkBtn">Delete selected spots</button>
+                    <button type="button" class="delete-spots-bulk-btn" id="deleteSpotsBulkBtn">Mark selected unavailable</button>
                 </div>
                 <table class="pending-table" id="spotsPriceTable" style="display: none;">
                     <thead>
@@ -719,10 +727,16 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     if (table) table.style.display = 'table';
                     if (body) {
                         body.innerHTML = data.map(function(b) {
+                            var requestDetails = [
+                                'Waiting for admin approval',
+                                b.tourist_message ? ('Tourist note: ' + b.tourist_message) : '',
+                                b.meeting_location ? ('Suggested location: ' + b.meeting_location) : ''
+                            ].filter(Boolean).join('\n');
                             return '<tr data-booking-id="' + b.booking_id + '">' +
                                 '<td><b>' + escapeHtml(b.tourist_name) + '</b></td>' +
                                 '<td>' + escapeHtml(b.guide_name) + '</td>' +
                                 '<td>' + escapeHtml(b.created_at || '') + '</td>' +
+                                '<td style="white-space: pre-line;">' + escapeHtml(requestDetails) + '</td>' +
                                 '<td><button type="button" class="approve-booking-btn" data-booking-id="' + b.booking_id + '">Approve booking</button></td>' +
                                 '</tr>';
                         }).join('');
@@ -731,6 +745,9 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                         btn.addEventListener('click', function() {
                             var id = this.getAttribute('data-booking-id');
                             if (!id) return;
+                            if (!window.confirm('Approve this guide booking request?')) {
+                                return;
+                            }
                             this.disabled = true;
                             this.textContent = 'Approving…';
                             var form = new FormData();
@@ -790,10 +807,14 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     if (table) table.style.display = 'table';
                     if (body) {
                         body.innerHTML = data.map(function(b) {
+                            var approvedMeetDetails = b.meet_time
+                                ? formatBookingDateTime(b.meet_time)
+                                : 'To be confirmed in guide-tourist messages';
                             return '<tr data-approved-booking-id="' + b.booking_id + '">' +
                                 '<td><b>' + escapeHtml(b.tourist_name) + '</b></td>' +
                                 '<td>' + escapeHtml(b.guide_name) + '</td>' +
                                 '<td>' + escapeHtml(b.approved_at || b.created_at || '') + '</td>' +
+                                '<td>' + escapeHtml(approvedMeetDetails) + '</td>' +
                                 '<td><button type="button" class="release-booking-btn" data-booking-id="' + b.booking_id + '">Make available again</button></td>' +
                                 '</tr>';
                         }).join('');
@@ -841,6 +862,93 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             var div = document.createElement('div');
             div.textContent = s;
             return div.innerHTML;
+        }
+
+        function formatBookingDateTime(value) {
+            if (!value) return '';
+            var normalized = String(value).replace(' ', 'T');
+            var date = new Date(normalized);
+            if (isNaN(date.getTime())) return String(value);
+            return date.toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        function getDefaultMeetTimeInput(value) {
+            var date = value ? new Date(String(value).replace(' ', 'T')) : new Date(Date.now() + (60 * 60 * 1000));
+            if (isNaN(date.getTime())) {
+                date = new Date(Date.now() + (60 * 60 * 1000));
+            }
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+        }
+
+        function normalizeMeetTimeInput(value) {
+            var raw = String(value || '').trim();
+            if (!raw) {
+                return '';
+            }
+
+            var normalized = raw
+                .replace(/\//g, '-')
+                .replace(/\s+/g, ' ')
+                .replace(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2}(?::\d{2})?)$/, '$1T$2');
+
+            var directDate = new Date(normalized);
+            if (!isNaN(directDate.getTime())) {
+                return getDefaultMeetTimeInput(toDateTimeDatabaseValue(directDate));
+            }
+
+            var match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[\sT]+(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?$/);
+            if (!match) {
+                return '';
+            }
+
+            var hours = parseInt(match[4], 10);
+            var minutes = parseInt(match[5], 10);
+            var meridiem = (match[6] || '').toUpperCase();
+
+            if (minutes > 59 || hours > 23) {
+                return '';
+            }
+
+            if (meridiem) {
+                if (hours < 1 || hours > 12) {
+                    return '';
+                }
+                if (meridiem === 'PM' && hours !== 12) hours += 12;
+                if (meridiem === 'AM' && hours === 12) hours = 0;
+            }
+
+            var parsedDate = new Date(
+                parseInt(match[1], 10),
+                parseInt(match[2], 10) - 1,
+                parseInt(match[3], 10),
+                hours,
+                minutes,
+                0,
+                0
+            );
+
+            return isNaN(parsedDate.getTime()) ? '' : getDefaultMeetTimeInput(toDateTimeDatabaseValue(parsedDate));
+        }
+
+        function toDateTimeDatabaseValue(date) {
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            var seconds = String(date.getSeconds()).padStart(2, '0');
+            return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
         }
 
         function loadAllGuides() {
@@ -994,11 +1102,12 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     if (bulkActions && data.length > 0) bulkActions.style.display = 'block';
                     if (body) {
                         body.innerHTML = data.map(function(s) {
-                            return '<tr data-destination-id="' + s.destination_id + '">' +
+                            var isAvailable = parseInt(s.is_available, 10) !== 0;
+                            return '<tr data-destination-id="' + s.destination_id + '" data-is-available="' + (isAvailable ? '1' : '0') + '">' +
                                 '<td><input type="checkbox" class="spot-row-checkbox" data-destination-id="' + s.destination_id + '"></td>' +
                                 '<td><b>' + escapeHtml(s.name) + '</b></td>' +
                                 '<td><input type="text" class="spot-price-input" data-destination-id="' + s.destination_id + '" value="' + escapeHtml(s.price || '') + '" placeholder="e.g. 2,500"></td>' +
-                                '<td><span class="spot-actions"><button type="button" class="save-spot-price-btn" data-destination-id="' + s.destination_id + '">Save</button> <button type="button" class="delete-spot-btn" data-destination-id="' + s.destination_id + '">Delete</button></span></td></tr>';
+                                '<td><span class="spot-actions"><span class="spot-status-badge ' + (isAvailable ? 'spot-status-available' : 'spot-status-unavailable') + '">' + (isAvailable ? 'Available' : 'Unavailable') + '</span> <button type="button" class="save-spot-price-btn" data-destination-id="' + s.destination_id + '">Save</button> <button type="button" class="delete-spot-btn ' + (isAvailable ? '' : 'spot-toggle-available-btn') + '" data-destination-id="' + s.destination_id + '" data-is-available="' + (isAvailable ? '1' : '0') + '">' + (isAvailable ? 'Unavailable' : 'Available') + '</button></span></td></tr>';
                         }).join('');
                     }
                     var selectAll = document.getElementById('spotsSelectAll');
@@ -1016,11 +1125,11 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                 var id = cb.getAttribute('data-destination-id');
                                 if (id) ids.push(id);
                             });
-                            if (ids.length === 0) { showAdminNotice('Select at least one spot to delete.'); return; }
-                            showAdminConfirm('Remove ' + ids.length + ' selected spot(s)? They will no longer appear on the landing page.').then(function(confirmed) {
+                            if (ids.length === 0) { showAdminNotice('Select at least one spot to mark unavailable.'); return; }
+                            showAdminConfirm('Mark ' + ids.length + ' selected spot(s) as unavailable? They will no longer appear on the landing page.').then(function(confirmed) {
                                 if (!confirmed) return;
                                 bulkBtn.disabled = true;
-                                bulkBtn.textContent = 'Deleting…';
+                                bulkBtn.textContent = 'Marking unavailable…';
                                 var form = new FormData();
                                 ids.forEach(function(id) { form.append('destination_ids[]', id); });
                                 fetch('delete_spots_bulk.php', { method: 'POST', credentials: 'same-origin', body: form })
@@ -1029,25 +1138,36 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                         if (res.ok) {
                                             ids.forEach(function(id) {
                                                 var row = document.querySelector('tr[data-destination-id="' + id + '"]');
-                                                if (row) row.remove();
-                                            });
-                                            if (body.rows.length === 0) {
-                                                if (table) table.style.display = 'none';
-                                                if (empty) empty.style.display = 'block';
-                                                var ba = document.getElementById('spotsBulkActions');
-                                                if (ba) ba.style.display = 'none';
+                                                if (row) {
+                                                    row.setAttribute('data-is-available', '0');
+                                                    var badge = row.querySelector('.spot-status-badge');
+                                                    if (badge) {
+                                                        badge.textContent = 'Unavailable';
+                                                        badge.classList.remove('spot-status-available');
+                                                        badge.classList.add('spot-status-unavailable');
+                                                    }
+                                                    var toggleBtn = row.querySelector('.delete-spot-btn');
+                                                    if (toggleBtn) {
+                                                        toggleBtn.disabled = false;
+                                                        toggleBtn.textContent = 'Available';
+                                                        toggleBtn.setAttribute('data-is-available', '0');
+                                                        toggleBtn.classList.add('spot-toggle-available-btn');
+                                                    }
+                                                    var checkbox = row.querySelector('.spot-row-checkbox');
+                                                    if (checkbox) checkbox.checked = false;
+                                                }
                                             }
                                             if (selectAll) selectAll.checked = false;
                                         } else {
-                                            showAdminNotice(res.error || 'Could not delete.');
+                                            showAdminNotice(res.error || 'Could not mark spots as unavailable.');
                                         }
                                         bulkBtn.disabled = false;
-                                        bulkBtn.textContent = 'Delete selected spots';
+                                        bulkBtn.textContent = 'Mark selected unavailable';
                                     })
                                     .catch(function() {
                                         showAdminNotice('Request failed.');
                                         bulkBtn.disabled = false;
-                                        bulkBtn.textContent = 'Delete selected spots';
+                                        bulkBtn.textContent = 'Mark selected unavailable';
                                     });
                             });
                         };
@@ -1089,32 +1209,46 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             var id = this.getAttribute('data-destination-id');
                             if (!id) return;
                             var row = document.querySelector('tr[data-destination-id="' + id + '"]');
-                            var spotName = row && row.cells[0] ? row.cells[0].textContent.trim() : 'This spot';
-                            showAdminConfirm('Remove "' + spotName + '"? It will no longer appear on the landing page.').then(function(confirmed) {
+                            var spotName = row && row.cells[1] ? row.cells[1].textContent.trim() : 'This spot';
+                            var isCurrentlyAvailable = this.getAttribute('data-is-available') !== '0';
+                            var nextAvailability = isCurrentlyAvailable ? '0' : '1';
+                            var actionLabel = isCurrentlyAvailable ? 'unavailable' : 'available';
+                            var landingPageText = isCurrentlyAvailable
+                                ? 'It will be hidden from the landing page until you make it available again.'
+                                : 'It will appear on the landing page again.';
+                            showAdminConfirm('Mark "' + spotName + '" as ' + actionLabel + '? ' + landingPageText).then(function(confirmed) {
                                 if (!confirmed) return;
                                 this.disabled = true;
-                                this.textContent = 'Deleting…';
+                                this.textContent = 'Updating…';
                                 var form = new FormData();
                                 form.append('destination_id', id);
+                                form.append('is_available', nextAvailability);
                                 fetch('delete_spot.php', { method: 'POST', credentials: 'same-origin', body: form })
                                     .then(function(r) { return r.json(); })
                                     .then(function(res) {
                                         if (res.ok && row) {
-                                            row.remove();
-                                            if (body.rows.length === 0) {
-                                                if (table) table.style.display = 'none';
-                                                if (empty) empty.style.display = 'block';
+                                            var isAvailableNow = String(res.is_available) !== '0';
+                                            row.setAttribute('data-is-available', isAvailableNow ? '1' : '0');
+                                            this.setAttribute('data-is-available', isAvailableNow ? '1' : '0');
+                                            this.disabled = false;
+                                            this.textContent = isAvailableNow ? 'Unavailable' : 'Available';
+                                            this.classList.toggle('spot-toggle-available-btn', !isAvailableNow);
+                                            var badge = row.querySelector('.spot-status-badge');
+                                            if (badge) {
+                                                badge.textContent = isAvailableNow ? 'Available' : 'Unavailable';
+                                                badge.classList.toggle('spot-status-available', isAvailableNow);
+                                                badge.classList.toggle('spot-status-unavailable', !isAvailableNow);
                                             }
                                         } else {
-                                            showAdminNotice(res.error || 'Could not delete.');
+                                            showAdminNotice(res.error || 'Could not update this spot.');
                                             this.disabled = false;
-                                            this.textContent = 'Delete';
+                                            this.textContent = isCurrentlyAvailable ? 'Unavailable' : 'Available';
                                         }
                                     }.bind(this))
                                     .catch(function() {
                                         showAdminNotice('Request failed.');
                                         this.disabled = false;
-                                        this.textContent = 'Delete';
+                                        this.textContent = isCurrentlyAvailable ? 'Unavailable' : 'Available';
                                     }.bind(this));
                             }.bind(this));
                         });
@@ -1268,6 +1402,67 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                         button.textContent = 'Dismiss';
                     }
                 });
+        }
+
+        function suspendGuideFromReview(guideId, button) {
+            guideId = Number(guideId || 0);
+            if (!guideId) {
+                showAdminNotice('This reported review is not linked to a tour guide.');
+                return;
+            }
+
+            var daysInput = window.prompt('Suspend this tour guide for how many days? Enter 1, 2, or 3.', '3');
+            if (daysInput === null) return;
+
+            var days = Number(String(daysInput).trim());
+            if ([1, 2, 3].indexOf(days) === -1) {
+                showAdminNotice('Enter only 1, 2, or 3 days.');
+                return;
+            }
+
+            showAdminConfirm('Suspend this tour guide for ' + days + ' day' + (days === 1 ? '' : 's') + '?').then(function(confirmed) {
+                if (!confirmed) return;
+
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = 'Suspending…';
+                }
+
+                var form = new FormData();
+                form.append('guide_id', guideId);
+                form.append('days', days);
+
+                fetch('suspend_guide.php', { method: 'POST', credentials: 'same-origin', body: form })
+                    .then(function(r) {
+                        if (r.status === 403) {
+                            window.location.href = 'signinTouristAdmin.html';
+                            return null;
+                        }
+                        return r.json();
+                    })
+                    .then(function(res) {
+                        if (!res) return;
+                        if (res.ok) {
+                            loadAllGuides();
+                            loadActiveGuides();
+                            loadSuspendedGuides();
+                            showAdminNotice('Tour guide suspended for ' + days + ' day' + (days === 1 ? '' : 's') + '.');
+                            return;
+                        }
+                        showAdminNotice(res.error || 'Could not suspend this tour guide.');
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = 'Suspend guide';
+                        }
+                    })
+                    .catch(function() {
+                        showAdminNotice('Request failed.');
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = 'Suspend guide';
+                        }
+                    });
+            });
         }
 
         function renderReviewsAdminTable() {
@@ -1531,6 +1726,10 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 
                     table.style.display = 'table';
                     body.innerHTML = reviews.map(function(review) {
+                        var guideId = Number(review.guide_id || 0);
+                        var suspendButton = guideId > 0
+                            ? '<button type="button" class="suspend-guide-review-btn" data-guide-id="' + guideId + '">Suspend guide</button>'
+                            : '';
                         return '<tr data-review-id="' + review.review_id + '">' +
                             '<td>' + escapeHtml(review.tourist_name || '—') + '</td>' +
                             '<td>' + escapeHtml(review.subject || '—') + ' <small>(' + escapeHtml(String(review.review_type || 'location').toUpperCase()) + ')</small></td>' +
@@ -1539,6 +1738,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             '<td>' + escapeHtml(review.created_at || '') + '</td>' +
                             '<td><span class="review-actions-inline">' +
                             '<button type="button" class="dismiss-report-btn" data-review-id="' + review.review_id + '">Dismiss</button>' +
+                            suspendButton +
                             '<button type="button" class="delete-review-admin-btn" data-review-id="' + review.review_id + '">Delete</button>' +
                             '</span></td>' +
                             '</tr>';
@@ -1552,6 +1752,11 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     body.querySelectorAll('.delete-review-admin-btn').forEach(function(btn) {
                         btn.addEventListener('click', function() {
                             deleteReviewAdmin(this.getAttribute('data-review-id'), this);
+                        });
+                    });
+                    body.querySelectorAll('.suspend-guide-review-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            suspendGuideFromReview(this.getAttribute('data-guide-id'), this);
                         });
                     });
                 })

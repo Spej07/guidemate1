@@ -19,6 +19,8 @@ if (!ensure_guide_bookings_table($mysqli)) {
 $sql = "SELECT
             gb.booking_id,
             gb.created_at,
+            gb.meeting_location,
+            gb.tourist_message,
             TRIM(CONCAT(COALESCE(t.first_name, ''), ' ', COALESCE(t.last_name, ''))) AS tourist_name,
             TRIM(CONCAT(COALESCE(g.first_name, ''), ' ', COALESCE(g.last_name, ''))) AS guide_name
         FROM guide_bookings gb
@@ -35,7 +37,9 @@ if ($result) {
             'booking_id' => (int) $row['booking_id'],
             'tourist_name' => trim($row['tourist_name'] ?? '') ?: 'Tourist',
             'guide_name' => trim($row['guide_name'] ?? '') ?: 'Guide',
-            'created_at' => $row['created_at'] ?? ''
+            'created_at' => $row['created_at'] ?? '',
+            'meeting_location' => $row['meeting_location'] ?? '',
+            'tourist_message' => $row['tourist_message'] ?? ''
         ];
     }
 }

@@ -1,21 +1,46 @@
 document.addEventListener("DOMContentLoaded", () => {
     // 1. INITIAL SYNC & SELECTORS
-    const role = localStorage.getItem("role") || "";
-    const userId = localStorage.getItem("userId") || "";
-    const scopedNameKey = (role && userId) ? `profileName:${role}:${userId}` : "";
-    const scopedImageKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
+    let role = localStorage.getItem("role") || "";
+    let userId = localStorage.getItem("userId") || "";
+    let scopedNameKey = (role && userId) ? `profileName:${role}:${userId}` : "";
+    let scopedImageKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
     let fullName = (scopedNameKey ? localStorage.getItem(scopedNameKey) : null) || localStorage.getItem("fullName") || "Guest Traveler";
-    
+    let firstName = (role && userId ? localStorage.getItem(`firstName:${role}:${userId}`) : null) || localStorage.getItem("firstName") || "";
+    let lastName = (role && userId ? localStorage.getItem(`lastName:${role}:${userId}`) : null) || localStorage.getItem("lastName") || "";
+    let canChangeProfileImage = true;
+    let nextProfileImageChangeAt = "";
+    let profileImageCooldownDays = 15;
+
     const profileName = document.getElementById("profileName");
     const profileHandle = document.getElementById("profileHandle");
     const profilePics = document.querySelectorAll(".profile-pic, .large-avatar, #profilePic, #profileDropdownBtn");
-    const editBtn = document.getElementById("editProfileBtn");
-    const imageInput = document.getElementById("imageInput");
+    const profileNotice = document.getElementById("profileNotice");
+    const editProfileToggle = document.getElementById("editProfileToggle");
+    const profileEditPanel = document.getElementById("profileEditPanel");
+    const touristProfileForm = document.getElementById("touristProfileForm");
+    const editFirstName = document.getElementById("editFirstName");
+    const editLastName = document.getElementById("editLastName");
+    const editProfileImage = document.getElementById("editProfileImage");
+    const cancelProfileEdit = document.getElementById("cancelProfileEdit");
+    const saveProfileChangesBtn = document.getElementById("saveProfileChangesBtn");
+    const profilePicCooldownText = document.getElementById("profilePicCooldownText");
+
+    function refreshScopedKeys() {
+        scopedNameKey = (role && userId) ? `profileName:${role}:${userId}` : "";
+        scopedImageKey = (role && userId) ? `profileImage:${role}:${userId}` : "";
+    }
+
+    function showProfileNotice(message, type = "success") {
+        if (!profileNotice) return;
+        profileNotice.textContent = message;
+        profileNotice.className = "profile-notice";
+        profileNotice.classList.add(type, "show");
+    }
 
     function updateDisplay(name) {
         if (profileName) profileName.textContent = name;
         if (profileHandle) {
-            const handle = name.split(" ")[0].toLowerCase();
+            const handle = (name.split(" ")[0] || "traveler").toLowerCase();
             profileHandle.textContent = `@${handle}`;
         }
     }
@@ -23,8 +48,114 @@ document.addEventListener("DOMContentLoaded", () => {
     function syncImages() {
         const savedImage = (scopedImageKey ? localStorage.getItem(scopedImageKey) : null) || localStorage.getItem("profileImage");
         if (savedImage && profilePics) {
-            profilePics.forEach(img => img.src = savedImage);
+            profilePics.forEach((img) => {
+                img.src = savedImage;
+            });
         }
+    }
+
+    function fillProfileForm() {
+        if (editFirstName) editFirstName.value = firstName;
+        if (editLastName) editLastName.value = lastName;
+        if (editProfileImage) editProfileImage.value = "";
+    }
+
+    function formatDateLabel(rawDate) {
+        if (!rawDate) return "";
+        const parsed = new Date(rawDate);
+        if (Number.isNaN(parsed.getTime())) return rawDate;
+        return parsed.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
+    }
+
+    function getRemainingDays(rawDate) {
+        if (!rawDate) return 0;
+        const parsed = new Date(rawDate);
+        if (Number.isNaN(parsed.getTime())) return 0;
+        const diffMs = parsed.getTime() - Date.now();
+        if (diffMs <= 0) return 0;
+        return Math.ceil(diffMs / 86400000);
+    }
+
+    function updateProfileImageAvailability() {
+        if (editProfileImage) {
+            editProfileImage.disabled = !canChangeProfileImage;
+            if (!canChangeProfileImage) editProfileImage.value = "";
+        }
+
+        if (!profilePicCooldownText) return;
+
+        if (canChangeProfileImage) {
+            profilePicCooldownText.textContent = `You can change your photo now. After uploading a new one, you must wait ${profileImageCooldownDays} days before changing it again.`;
+            return;
+        }
+
+        const daysLeft = getRemainingDays(nextProfileImageChangeAt);
+        const nextDate = formatDateLabel(nextProfileImageChangeAt);
+        const dayLabel = daysLeft === 1 ? "1 day" : `${daysLeft} days`;
+        profilePicCooldownText.textContent = nextDate
+            ? `Profile photo changes are limited to once every ${profileImageCooldownDays} days. You can upload again in ${dayLabel}, on ${nextDate}.`
+            : `Profile photo changes are limited to once every ${profileImageCooldownDays} days.`;
+    }
+
+    function toggleEditPanel(forceState) {
+        if (!profileEditPanel) return;
+        const shouldOpen = typeof forceState === "boolean" ? forceState : profileEditPanel.hidden;
+        profileEditPanel.hidden = !shouldOpen;
+        if (editProfileToggle) {
+            editProfileToggle.textContent = shouldOpen ? "Close editor" : "Edit profile";
+        }
+        if (shouldOpen) fillProfileForm();
+    }
+
+    function applyProfileData(data) {
+        const sessionRole = String(data.role || role);
+        const sessionUserId = String(data.user_id || userId);
+        const sessionFirstName = String(data.first_name || "").trim();
+        const sessionLastName = String(data.last_name || "").trim();
+        const sessionFullName = String(data.full_name || "").trim() || "Guest Traveler";
+        const sessionImage = String(data.profile_image || "");
+
+        role = sessionRole;
+        userId = sessionUserId;
+        refreshScopedKeys();
+
+        firstName = sessionFirstName;
+        lastName = sessionLastName;
+        fullName = sessionFullName;
+        canChangeProfileImage = data.can_change_profile_image !== false;
+        nextProfileImageChangeAt = String(data.next_profile_image_change_at || "");
+
+        const cooldownValue = Number(data.profile_image_cooldown_days);
+        if (!Number.isNaN(cooldownValue) && cooldownValue > 0) {
+            profileImageCooldownDays = cooldownValue;
+        } else if (sessionRole === "guide") {
+            profileImageCooldownDays = 30;
+        } else {
+            profileImageCooldownDays = 15;
+        }
+
+        localStorage.setItem("role", sessionRole);
+        localStorage.setItem("userId", sessionUserId);
+        localStorage.setItem("firstName", sessionFirstName);
+        localStorage.setItem("lastName", sessionLastName);
+        localStorage.setItem("fullName", sessionFullName);
+        localStorage.setItem(`firstName:${sessionRole}:${sessionUserId}`, sessionFirstName);
+        localStorage.setItem(`lastName:${sessionRole}:${sessionUserId}`, sessionLastName);
+        localStorage.setItem(`profileName:${sessionRole}:${sessionUserId}`, sessionFullName);
+        if (sessionImage) {
+            localStorage.setItem(`profileImage:${sessionRole}:${sessionUserId}`, sessionImage);
+            localStorage.setItem("profileImage", sessionImage);
+        }
+
+        updateDisplay(sessionFullName);
+        syncImages();
+        fillProfileForm();
+        updateProfileImageAvailability();
+        if (typeof syncProfileData === "function") syncProfileData();
     }
 
     async function hydrateProfileFromSession() {
@@ -34,86 +165,95 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await response.json();
             if (!data || !data.success) return;
+            applyProfileData(data);
+        } catch (_) {}
+    }
 
-            const sessionRole = String(data.role || role);
-            const sessionUserId = String(data.user_id || userId);
-            const sessionFullName = String(data.full_name || "").trim() || "Guest Traveler";
-            const sessionFirstName = String(data.first_name || "");
-            const sessionLastName = String(data.last_name || "");
-            const sessionImage = String(data.profile_image || "");
+    async function saveTouristProfile(e) {
+        e.preventDefault();
+        if (!touristProfileForm || !editFirstName || !editLastName) return;
 
-            localStorage.setItem("role", sessionRole);
-            localStorage.setItem("userId", sessionUserId);
-            localStorage.setItem("firstName", sessionFirstName);
-            localStorage.setItem("lastName", sessionLastName);
-            localStorage.setItem("fullName", sessionFullName);
-            localStorage.setItem(`firstName:${sessionRole}:${sessionUserId}`, sessionFirstName);
-            localStorage.setItem(`lastName:${sessionRole}:${sessionUserId}`, sessionLastName);
-            localStorage.setItem(`profileName:${sessionRole}:${sessionUserId}`, sessionFullName);
-            if (sessionImage) {
-                localStorage.setItem(`profileImage:${sessionRole}:${sessionUserId}`, sessionImage);
-                localStorage.setItem("profileImage", sessionImage);
+        const trimmedFirstName = editFirstName.value.trim();
+        const trimmedLastName = editLastName.value.trim();
+        if (!trimmedFirstName || !trimmedLastName) {
+            showProfileNotice("First name and last name are required.", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("first_name", trimmedFirstName);
+        formData.append("last_name", trimmedLastName);
+
+        if (editProfileImage && editProfileImage.files && editProfileImage.files[0] && !editProfileImage.disabled) {
+            formData.append("profile_image", editProfileImage.files[0]);
+        }
+
+        if (saveProfileChangesBtn) {
+            saveProfileChangesBtn.disabled = true;
+            saveProfileChangesBtn.textContent = "Saving...";
+        }
+
+        try {
+            const response = await fetch("update_tourist_profile.php", {
+                method: "POST",
+                credentials: "same-origin",
+                body: formData
+            });
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (_) {}
+
+            if (!response.ok || !data.success) {
+                if (data && Object.prototype.hasOwnProperty.call(data, "can_change_profile_image")) {
+                    canChangeProfileImage = data.can_change_profile_image !== false;
+                    nextProfileImageChangeAt = String(data.next_profile_image_change_at || "");
+                    const cooldownValue = Number(data.profile_image_cooldown_days);
+                    if (!Number.isNaN(cooldownValue) && cooldownValue > 0) {
+                        profileImageCooldownDays = cooldownValue;
+                    }
+                    updateProfileImageAvailability();
+                }
+                showProfileNotice(data.message || "Could not update profile.", "error");
+                return;
             }
 
-            fullName = sessionFullName;
-            updateDisplay(sessionFullName);
-            syncImages();
-            if (typeof syncProfileData === "function") syncProfileData();
-        } catch (_) {}
+            applyProfileData(data);
+            toggleEditPanel(false);
+            showProfileNotice(data.message || "Profile updated successfully.", "success");
+        } catch (_) {
+            showProfileNotice("Could not update profile right now. Please try again.", "error");
+        } finally {
+            if (saveProfileChangesBtn) {
+                saveProfileChangesBtn.disabled = false;
+                saveProfileChangesBtn.textContent = "Save changes";
+            }
+        }
     }
 
     // Run initial display sync
     updateDisplay(fullName);
     syncImages();
+    fillProfileForm();
+    updateProfileImageAvailability();
     hydrateProfileFromSession();
 
-    // 2. PROFILE EDITING LOGIC
-    if (editBtn) {
-        editBtn.addEventListener("click", () => {
-            const currentName = profileName.textContent;
-            const newName = prompt("Enter your new full name:", currentName);
-            
-            if (newName && newName.trim() !== "") {
-                fullName = newName.trim();
-                const nameParts = fullName.split(/\s+/);
-                const firstName = nameParts.shift() || "";
-                const lastName = nameParts.join(" ");
-                if (scopedNameKey) localStorage.setItem(scopedNameKey, fullName);
-                if (role && userId) {
-                    localStorage.setItem(`firstName:${role}:${userId}`, firstName);
-                    localStorage.setItem(`lastName:${role}:${userId}`, lastName);
-                }
-                localStorage.setItem("firstName", firstName);
-                localStorage.setItem("lastName", lastName);
-                localStorage.setItem("fullName", fullName);
-                updateDisplay(fullName);
-                if (typeof syncProfileData === "function") syncProfileData();
+    if (editProfileToggle) {
+        editProfileToggle.addEventListener("click", () => toggleEditPanel());
+    }
 
-                if(confirm("Would you also like to change your profile picture?")) {
-                    imageInput.click();
-                }
-            }
+    if (cancelProfileEdit) {
+        cancelProfileEdit.addEventListener("click", () => {
+            fillProfileForm();
+            toggleEditPanel(false);
         });
     }
 
-    if (imageInput) {
-        imageInput.addEventListener("change", function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const result = e.target.result;
-                    if (scopedImageKey) localStorage.setItem(scopedImageKey, result);
-                    localStorage.setItem("profileImage", result);
-                    profilePics.forEach(img => img.src = result);
-                    if (typeof syncProfileData === "function") syncProfileData();
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+    if (touristProfileForm) {
+        touristProfileForm.addEventListener("submit", saveTouristProfile);
     }
 
-    // 3. TAB SWITCHING LOGIC
+    // 2. TAB SWITCHING LOGIC
     const profileTabs = document.querySelectorAll('.profile-tabs a');
     const activityContent = document.getElementById('activityContent');
     const reviewsContent = document.getElementById('reviewsContent');
@@ -137,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Logout (Sign out)
+    // 3. Logout (Sign out)
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
         logoutBtn.addEventListener("click", (e) => {

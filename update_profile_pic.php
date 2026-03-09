@@ -22,23 +22,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             die("<script>alert('File too large.'); window.history.back();</script>");
         }
 
-        // Tour guides: 1 profile pic change per 30 days
+        // Enforce cooldowns for roles that limit profile photo changes.
+        $cooldownTable = '';
+        $cooldownDays = 0;
         if ($role === 'guide') {
-            $col = $mysqli->query("SHOW COLUMNS FROM tour_guides LIKE 'profile_image_updated_at'");
+            $cooldownTable = 'tour_guides';
+            $cooldownDays = 30;
+        } elseif ($role === 'tourist') {
+            $cooldownTable = 'tourists';
+            $cooldownDays = 15;
+        }
+
+        if ($cooldownTable !== '') {
+            $col = $mysqli->query("SHOW COLUMNS FROM $cooldownTable LIKE 'profile_image_updated_at'");
             if (!$col || $col->num_rows === 0) {
-                $mysqli->query("ALTER TABLE tour_guides ADD COLUMN profile_image_updated_at DATE DEFAULT NULL");
+                $mysqli->query("ALTER TABLE $cooldownTable ADD COLUMN profile_image_updated_at DATE DEFAULT NULL");
             }
-            $stmtCheck = $mysqli->prepare("SELECT profile_image_updated_at FROM tour_guides WHERE user_id = ?");
+            $stmtCheck = $mysqli->prepare("SELECT profile_image_updated_at FROM $cooldownTable WHERE user_id = ?");
             $stmtCheck->bind_param('i', $user_id);
             $stmtCheck->execute();
             $res = $stmtCheck->get_result();
             if ($res && ($row = $res->fetch_assoc()) && !empty($row['profile_image_updated_at'])) {
                 $last = (string)$row['profile_image_updated_at'];
                 $lastTs = strtotime($last);
-                $nextAllowed = strtotime('+30 days', $lastTs);
+                $nextAllowed = strtotime('+' . $cooldownDays . ' days', $lastTs);
                 if (time() < $nextAllowed) {
                     $nextDate = date('F j, Y', $nextAllowed);
-                    die("<script>alert('You can only change your profile picture once every 30 days. Next change allowed on " . addslashes($nextDate) . ".'); window.history.back();</script>");
+                    die("<script>alert('You can only change your profile picture once every $cooldownDays days. Next change allowed on " . addslashes($nextDate) . ".'); window.history.back();</script>");
                 }
             }
             $stmtCheck->close();
@@ -71,12 +81,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($role === 'guide') {
                 $stmt = $mysqli->prepare("UPDATE tour_guides SET profile_image = ?, profile_image_updated_at = CURDATE() WHERE user_id = ?");
                 $stmt->bind_param('si', $db_path, $user_id);
+            } elseif ($role === 'tourist') {
+                $stmt = $mysqli->prepare("UPDATE tourists SET profile_image = ?, profile_image_updated_at = CURDATE() WHERE user_id = ?");
+                $stmt->bind_param('si', $db_path, $user_id);
+            } elseif ($role === 'admin') {
+                $adminCheck = $mysqli->prepare("SELECT admin_id FROM admins WHERE user_id = ? LIMIT 1");
+                $adminCheck->bind_param('i', $user_id);
+                $adminCheck->execute();
+                $adminRes = $adminCheck->get_result();
+                $adminRow = $adminRes ? $adminRes->fetch_assoc() : null;
+                $adminCheck->close();
+
+                if ($adminRow) {
+                    $stmt = $mysqli->prepare("UPDATE admins SET profile_image = ? WHERE user_id = ?");
+                    $stmt->bind_param('si', $db_path, $user_id);
+                } else {
+                    $emptyValue = '';
+                    $stmt = $mysqli->prepare("INSERT INTO admins (user_id, first_name, last_name, email, profile_image) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->bind_param('issss', $user_id, $emptyValue, $emptyValue, $emptyValue, $db_path);
+                }
             } else {
                 $stmt = $mysqli->prepare("UPDATE $table SET $column = ? WHERE user_id = ?");
                 $stmt->bind_param('si', $db_path, $user_id);
             }
             if ($stmt->execute()) {
-                $redirect = ($role === 'guide') ? 'tourGuideDashboardNew.html' : 'signinTouristAdmin.html';
+                $redirect = ($role === 'guide')
+                    ? 'tourGuideDashboardNew.html'
+                    : (($role === 'admin') ? 'adminDashboard.php' : 'signinTouristAdmin.html');
                 $db_path_esc = addslashes($db_path);
                 $guideIdScript = '';
                 $cooldownJustChangedScript = '';

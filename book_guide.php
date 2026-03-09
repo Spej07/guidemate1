@@ -12,7 +12,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'tourist' || empty($_SESSI
 }
 
 if (!ensure_guide_bookings_table($mysqli)) {
-    echo json_encode(['ok' => false, 'error' => 'Could not prepare bookings table.']);
+    echo json_encode(['ok' => false, 'error' => 'Could not prepare booking details.']);
     exit;
 }
 
@@ -95,7 +95,7 @@ $guideName = trim(($guide['first_name'] ?? '') . ' ' . ($guide['last_name'] ?? '
 echo json_encode([
     'ok' => true,
     'message' => $guideName !== ''
-        ? 'Booking request sent to ' . $guideName . '. Waiting for admin approval.'
-        : 'Booking request sent. Waiting for admin approval.'
+        ? 'Booking request sent to ' . $guideName . '. Wait for admin approval, then your guide can message you about the meeting time and place.'
+        : 'Booking request sent. Wait for admin approval, then your guide can message you about the meeting time and place.'
 ]);
 ?>

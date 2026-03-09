@@ -176,6 +176,70 @@ function displayCards(items) {
 }
 
 function handleGuideBooking(button) {
+    function toDateTimeLocalValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+    }
+
+    function getDefaultMeetTimeInput() {
+        const now = new Date(Date.now() + (60 * 60 * 1000));
+        return toDateTimeLocalValue(now);
+    }
+
+    function normalizeMeetTimeInput(value) {
+        const raw = String(value || '').trim();
+        if (!raw) {
+            return '';
+        }
+
+        const normalized = raw
+            .replace(/\//g, '-')
+            .replace(/\s+/g, ' ')
+            .replace(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2}(?::\d{2})?)$/, '$1T$2');
+
+        const directDate = new Date(normalized);
+        if (!isNaN(directDate.getTime())) {
+            return toDateTimeLocalValue(directDate);
+        }
+
+        const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[\sT]+(\d{1,2}):(\d{2})(?:\s*([AaPp][Mm]))?$/);
+        if (!match) {
+            return '';
+        }
+
+        let hours = parseInt(match[4], 10);
+        const minutes = parseInt(match[5], 10);
+        const meridiem = (match[6] || '').toUpperCase();
+
+        if (minutes > 59 || hours > 23) {
+            return '';
+        }
+
+        if (meridiem) {
+            if (hours < 1 || hours > 12) {
+                return '';
+            }
+            if (meridiem === 'PM' && hours !== 12) hours += 12;
+            if (meridiem === 'AM' && hours === 12) hours = 0;
+        }
+
+        const date = new Date(
+            parseInt(match[1], 10),
+            parseInt(match[2], 10) - 1,
+            parseInt(match[3], 10),
+            hours,
+            minutes,
+            0,
+            0
+        );
+
+        return isNaN(date.getTime()) ? '' : toDateTimeLocalValue(date);
+    }
+
     const guideId = parseInt(button.getAttribute("data-guide-id") || "0", 10);
     const card = button.closest(".card");
     const guideName = card && card.querySelector("h3") ? card.querySelector("h3").textContent.trim() : "this guide";
@@ -401,7 +465,7 @@ async function loadSpotData() {
 
         if (!response.ok) throw new Error(`get_spots failed: ${response.status}`);
         const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
             locationData = data;
         } else {
             locationData = [...defaultLocationData];

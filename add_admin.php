@@ -32,14 +32,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $role   = 'admin';
             $status = 'Active';
-            $stmt = $mysqli->prepare("INSERT INTO users (username, password, role, status) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param('ssss', $username, $hash, $role, $status);
-            if ($stmt->execute()) {
+
+            $mysqli->begin_transaction();
+            try {
+                $stmt = $mysqli->prepare("INSERT INTO users (username, password, role, status) VALUES (?, ?, ?, ?)");
+                if (!$stmt) {
+                    throw new Exception('Could not prepare admin credentials.');
+                }
+                $stmt->bind_param('ssss', $username, $hash, $role, $status);
+                if (!$stmt->execute()) {
+                    throw new Exception('Could not create admin credentials.');
+                }
+                $newUserId = (int)$mysqli->insert_id;
                 $stmt->close();
+
+                $firstName = $username;
+                $lastName = '';
+                $email = '';
+                $adminStmt = $mysqli->prepare("INSERT INTO admins (user_id, first_name, last_name, email, profile_image) VALUES (?, ?, ?, ?, NULL)");
+                if (!$adminStmt) {
+                    throw new Exception('Could not prepare admin profile.');
+                }
+                $adminStmt->bind_param('isss', $newUserId, $firstName, $lastName, $email);
+                if (!$adminStmt->execute()) {
+                    throw new Exception('Could not create admin profile.');
+                }
+                $adminStmt->close();
+
+                $mysqli->commit();
                 $message = "Admin \"{$username}\" created. They can sign in with that username and password.";
-            } else {
-                $error = 'Could not create user: ' . $mysqli->error;
-                $stmt->close();
+            } catch (Throwable $e) {
+                $mysqli->rollback();
+                if (isset($stmt) && $stmt instanceof mysqli_stmt) {
+                    $stmt->close();
+                }
+                if (isset($adminStmt) && $adminStmt instanceof mysqli_stmt) {
+                    $adminStmt->close();
+                }
+                $error = $e->getMessage();
             }
         }
     }

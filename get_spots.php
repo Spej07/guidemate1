@@ -24,6 +24,8 @@ $colCategory = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'categorizati
 $hasCategory = $colCategory && $colCategory->num_rows > 0;
 $colMostVisited = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'is_most_visited'");
 $hasMostVisited = $colMostVisited && $colMostVisited->num_rows > 0;
+$colAvailability = $mysqli->query("SHOW COLUMNS FROM destinations LIKE 'is_available'");
+$hasAvailability = $colAvailability && $colAvailability->num_rows > 0;
 
 $select = "destination_id, name, description";
 if ($hasAddress) $select .= ", address";
@@ -35,7 +37,11 @@ if ($hasContact) $select .= ", contact_information";
 if ($hasCategory) $select .= ", categorization";
 if ($hasMostVisited) $select .= ", is_most_visited";
 
-$query = "SELECT $select FROM destinations ORDER BY created_at DESC";
+$query = "SELECT $select FROM destinations";
+if ($hasAvailability) {
+    $query .= " WHERE is_available = 1";
+}
+$query .= " ORDER BY created_at DESC";
 $result = $mysqli->query($query);
 
 $spots = [];
