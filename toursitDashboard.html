@@ -69,11 +69,11 @@
             if (el && typeof showLogoutConfirm === 'function') {
                 el.addEventListener('click', function() {
                     showLogoutConfirm(function() {
-                        window.location.href = 'landingpage.html';
+                        window.location.href = 'logout.php';
                     }, 'Sign out? Yes or No');
                 });
             } else if (el) {
-                el.addEventListener('click', function() { window.location.href = 'landingpage.html'; });
+                el.addEventListener('click', function() { window.location.href = 'logout.php'; });
             }
         })();
     </script>

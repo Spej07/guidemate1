@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelProfileEdit = document.getElementById("cancelProfileEdit");
     const saveProfileChangesBtn = document.getElementById("saveProfileChangesBtn");
     const profilePicCooldownText = document.getElementById("profilePicCooldownText");
+    const favoriteDestinationsList = document.getElementById("favoriteDestinationsList");
 
     function refreshScopedKeys() {
         scopedNameKey = (role && userId) ? `profileName:${role}:${userId}` : "";
@@ -169,6 +170,76 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (_) {}
     }
 
+    function formatFavoriteDate(rawDate) {
+        if (!rawDate) return "";
+        const parsed = new Date(rawDate);
+        if (Number.isNaN(parsed.getTime())) return "";
+        return parsed.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
+    }
+
+    async function loadFavoriteDestinations() {
+        if (!favoriteDestinationsList) return;
+        favoriteDestinationsList.innerHTML = "<p>Loading your favorite destinations...</p>";
+
+        try {
+            const response = await fetch("get_my_favorite_destinations.php", { credentials: "same-origin" });
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (_) {}
+
+            if (!response.ok || !data.success) {
+                favoriteDestinationsList.innerHTML = `<p>${data.message || "Could not load favorite destinations."}</p>`;
+                return;
+            }
+
+            const favorites = Array.isArray(data.favorites) ? data.favorites : [];
+            if (favorites.length === 0) {
+                favoriteDestinationsList.innerHTML = "<p>You have no favorite destinations yet. Tap the heart on a location card to save one.</p>";
+                return;
+            }
+
+            favoriteDestinationsList.innerHTML = "";
+            favorites.forEach((item) => {
+                const card = document.createElement("article");
+                card.className = "favorite-destination-item";
+
+                const image = document.createElement("img");
+                image.className = "favorite-destination-thumb";
+                image.src = item.image || "photos/default.jpg";
+                image.alt = item.name || "Favorite destination";
+                image.loading = "lazy";
+
+                const body = document.createElement("div");
+                body.className = "favorite-destination-body";
+
+                const title = document.createElement("h3");
+                title.textContent = item.name || "Unnamed destination";
+
+                const address = document.createElement("p");
+                address.textContent = item.address ? `Location: ${item.address}` : "Location details unavailable";
+
+                const meta = document.createElement("div");
+                meta.className = "favorite-destination-meta";
+                const favoriteDate = formatFavoriteDate(item.favorited_at);
+                meta.textContent = favoriteDate ? `Saved on ${favoriteDate}` : "Saved destination";
+
+                body.appendChild(title);
+                body.appendChild(address);
+                body.appendChild(meta);
+                card.appendChild(image);
+                card.appendChild(body);
+                favoriteDestinationsList.appendChild(card);
+            });
+        } catch (_) {
+            favoriteDestinationsList.innerHTML = "<p>Could not load favorite destinations right now.</p>";
+        }
+    }
+
     async function saveTouristProfile(e) {
         e.preventDefault();
         if (!touristProfileForm || !editFirstName || !editLastName) return;
@@ -237,6 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fillProfileForm();
     updateProfileImageAvailability();
     hydrateProfileFromSession();
+    loadFavoriteDestinations();
 
     if (editProfileToggle) {
         editProfileToggle.addEventListener("click", () => toggleEditPanel());
@@ -273,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 if (activityContent) activityContent.style.display = 'block';
                 if (reviewsContent) reviewsContent.style.display = 'none';
+                loadFavoriteDestinations();
             }
         });
     });

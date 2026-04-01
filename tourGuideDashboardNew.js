@@ -201,13 +201,38 @@ feather.replace();
             });
     }
 
+    function clearStoredSessionState() {
+        var activeRole = localStorage.getItem('role') || '';
+        var activeUserId = localStorage.getItem('userId') || '';
+
+        localStorage.removeItem('userLoggedIn');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('role');
+        localStorage.removeItem('touristId');
+        localStorage.removeItem('guideId');
+        localStorage.removeItem('firstName');
+        localStorage.removeItem('lastName');
+        localStorage.removeItem('fullName');
+        localStorage.removeItem('profileImage');
+        localStorage.removeItem('userReviews');
+
+        if (activeRole && activeUserId) {
+            localStorage.removeItem('firstName:' + activeRole + ':' + activeUserId);
+            localStorage.removeItem('lastName:' + activeRole + ':' + activeUserId);
+            localStorage.removeItem('profileName:' + activeRole + ':' + activeUserId);
+            localStorage.removeItem('profileImage:' + activeRole + ':' + activeUserId);
+        }
+    }
+
     function handleLogout() {
         if (typeof showLogoutConfirm === 'function') {
             showLogoutConfirm(function() {
-                window.location.href = "signinTouristAdmin.html";
+                clearStoredSessionState();
+                window.location.href = "logout.php";
             });
         } else {
-            window.location.href = "signinTouristAdmin.html";
+            clearStoredSessionState();
+            window.location.href = "logout.php";
         }
     }
 
@@ -272,6 +297,99 @@ feather.replace();
             });
     }
 
+function formatBookingDateTimeShort(value) {
+    if (!value) return '';
+    var normalized = String(value).replace(' ', 'T');
+    var date = new Date(normalized);
+    if (isNaN(date.getTime())) return String(value);
+    return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
+}
+
+function loadPendingGuideBookings() {
+    var loading = document.getElementById('guidePendingBookingsLoading');
+    var table = document.getElementById('guidePendingBookingsTable');
+    var body = document.getElementById('guidePendingBookingsBody');
+    var empty = document.getElementById('guidePendingBookingsEmpty');
+    if (!loading) return;
+
+    loading.style.display = 'block';
+    if (table) table.style.display = 'none';
+    if (empty) empty.style.display = 'none';
+
+    fetch('get_pending_bookings_guide.php', { credentials: 'same-origin' })
+        .then(function(r) {
+            if (r.status === 403) {
+                window.location.href = 'signinTouristAdmin.html';
+                return [];
+            }
+            return r.json();
+        })
+        .then(function(data) {
+            loading.style.display = 'none';
+            if (!Array.isArray(data) || data.length === 0) {
+                if (empty) empty.style.display = 'block';
+                return;
+            }
+
+            if (table) table.style.display = 'table';
+            if (body) {
+                body.innerHTML = data.map(function(booking) {
+                    var details = [
+                        booking.meeting_location ? ('Suggested location: ' + escapeHtml(booking.meeting_location)) : '',
+                        booking.tourist_message ? ('Tourist note: ' + escapeHtml(booking.tourist_message)) : ''
+                    ].filter(Boolean).join('<br>');
+                    return '<tr data-booking-id="' + booking.booking_id + '">' +
+                        '<td style="padding: 10px 8px;"><b>' + escapeHtml(booking.tourist_name || 'Tourist') + '</b></td>' +
+                        '<td style="padding: 10px 8px;">' + escapeHtml(formatBookingDateTimeShort(booking.created_at || '')) + '</td>' +
+                        '<td style="padding: 10px 8px;">' + (details ? details : '—') + '</td>' +
+                        '<td style="padding: 10px 8px;"><button type="button" class="btn btn-primary accept-booking-btn" data-booking-id="' + booking.booking_id + '">Accept booking</button></td>' +
+                        '</tr>';
+                }).join('');
+            }
+
+            document.querySelectorAll('.accept-booking-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var bookingId = this.getAttribute('data-booking-id');
+                    if (!bookingId) return;
+                    if (!window.confirm('Accept this booking request?')) return;
+
+                    this.disabled = true;
+                    this.textContent = 'Accepting...';
+                    var form = new FormData();
+                    form.append('booking_id', bookingId);
+
+                    fetch('approve_booking.php', { method: 'POST', credentials: 'same-origin', body: form })
+                        .then(function(r) { return r.json(); })
+                        .then(function(res) {
+                            if (!res.ok) {
+                                throw new Error(res.error || 'Could not accept booking.');
+                            }
+                            loadPendingGuideBookings();
+                            loadApprovedBooking();
+                        })
+                        .catch(function(err) {
+                            alert((err && err.message) || 'Could not accept booking.');
+                            btn.disabled = false;
+                            btn.textContent = 'Accept booking';
+                        });
+                });
+            });
+        })
+        .catch(function() {
+            loading.style.display = 'none';
+            if (empty) {
+                empty.textContent = 'Could not load pending bookings.';
+                empty.style.display = 'block';
+            }
+        });
+}
+
 function loadApprovedBooking() {
     var labelEl = document.getElementById('bookingHeroLabel');
     var titleEl = document.getElementById('bookingHeroTitle');
@@ -327,7 +445,7 @@ function loadApprovedBooking() {
 
     function setScheduleCardEmpty() {
         if (scheduleCardTitleEl) scheduleCardTitleEl.textContent = 'My Schedule';
-        if (scheduleCardTextEl) scheduleCardTextEl.textContent = 'No approved tourist booking yet. Your current guide assignment will appear here once an admin approves it.';
+        if (scheduleCardTextEl) scheduleCardTextEl.textContent = 'No accepted tourist booking yet. Your current guide assignment will appear here once you accept a request.';
         if (scheduleCardButtonEl) scheduleCardButtonEl.textContent = 'VIEW STATUS';
     }
 
@@ -340,7 +458,7 @@ function loadApprovedBooking() {
         if (taskStatusEl) taskStatusEl.textContent = 'BOOKED';
         if (taskTitleEl) taskTitleEl.textContent = touristName;
         if (taskPrimaryLineEl) taskPrimaryLineEl.innerHTML = '<i data-feather="users" style="width: 16px;"></i> Tourist assigned to this guide.';
-        if (taskSecondaryLineEl) taskSecondaryLineEl.innerHTML = '<i data-feather="calendar" style="width: 16px;"></i> ' + (meetTimeText ? ('Meet on ' + meetTimeText) : (approvedText ? ('Booking approved on ' + approvedText + '. Message the tourist to confirm the meeting time and place.') : 'Booking approved by admin. Message the tourist to confirm the meeting time and place.')) + (locationText ? ('<br><span style="display:inline-block; margin-top:4px;">' + escapeHtml(locationText) + '</span>') : '');
+        if (taskSecondaryLineEl) taskSecondaryLineEl.innerHTML = '<i data-feather="calendar" style="width: 16px;"></i> ' + (meetTimeText ? ('Meet on ' + meetTimeText) : (approvedText ? ('Booking accepted on ' + approvedText + '. Message the tourist to confirm the meeting time and place.') : 'Booking accepted. Message the tourist to confirm the meeting time and place.')) + (locationText ? ('<br><span style="display:inline-block; margin-top:4px;">' + escapeHtml(locationText) + '</span>') : '');
         activeBookingConversation = {
             booking_id: data.booking_id,
             tourist_name: touristName,
@@ -361,7 +479,7 @@ function loadApprovedBooking() {
                 ? (touristName + ' is currently assigned to you. Meet the tourist on ' + meetTimeText + '.' + locationText)
                 : approvedText
                 ? (touristName + ' is currently assigned to you. Booking approved on ' + approvedText + '. Send a message to confirm the meeting time and place.' + locationText)
-                : (touristName + ' is currently assigned to you. Booking approved by admin. Send a message to confirm the meeting time and place.');
+                : (touristName + ' is currently assigned to you. Booking accepted by you. Send a message to confirm the meeting time and place.');
         }
         if (scheduleCardButtonEl) scheduleCardButtonEl.textContent = 'CURRENT BOOKING';
     }
@@ -377,7 +495,7 @@ function loadApprovedBooking() {
             if (!data.booked) {
                 if (labelEl) labelEl.textContent = 'Current Assignment';
                 if (titleEl) titleEl.textContent = 'No approved booking yet';
-                if (textEl) textEl.textContent = "When an admin approves a tourist's booking request, the tourist name will appear here.";
+                if (textEl) textEl.textContent = "When you accept a tourist's booking request, the tourist name will appear here.";
                 if (metaEl) metaEl.textContent = '';
                 if (actionsEl) actionsEl.style.display = 'none';
                 setTaskCardEmpty();
@@ -394,8 +512,8 @@ function loadApprovedBooking() {
                 metaEl.textContent = data.meet_time
                     ? ('Meet time: ' + formatBookingDateTime(data.meet_time))
                     : data.approved_at
-                    ? ('Approved on ' + data.approved_at)
-                    : 'Booking approved by admin.';
+                    ? ('Accepted on ' + data.approved_at)
+                    : 'Booking accepted by guide.';
             }
             if (actionsEl) actionsEl.style.display = 'flex';
             if (heroMessageBtn) heroMessageBtn.textContent = 'MESSAGE ' + String(data.tourist_name || 'TOURIST').toUpperCase();
@@ -454,6 +572,7 @@ function loadApprovedBooking() {
     window.addEventListener('load', function() {
         loadGuideProfile();
         loadTouristReviews();
+        loadPendingGuideBookings();
         loadApprovedBooking();
         var heroMessageBtn = document.getElementById('heroMessageTouristBtn');
         var taskMessageBtn = document.getElementById('bookingMessageBtn');

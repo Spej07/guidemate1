@@ -102,6 +102,22 @@ body {
     font-size: 1rem;
 }
 
+.clear-filter-btn {
+    margin-top: 12px;
+    border: none;
+    background: #2c3e50;
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.clear-filter-btn:hover {
+    background: #1f2d3a;
+}
+
 /* ===== ITEMS GRID ===== */
 .items-grid {
     display: grid;
@@ -122,6 +138,11 @@ body {
 .item-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.item-card.is-active {
+    outline: 3px solid #3498db;
+    box-shadow: 0 10px 24px rgba(52, 152, 219, 0.28);
 }
 
 .item-image {

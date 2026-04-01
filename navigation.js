@@ -445,11 +445,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (typeof showLogoutConfirm === "function") {
                 showLogoutConfirm(function() {
                     localStorage.clear();
-                    window.location.href = "landingpage.html";
+                    window.location.href = "logout.php";
                 }, "Sign out? Yes or No");
             } else {
                 localStorage.clear();
-                window.location.href = "landingpage.html";
+                window.location.href = "logout.php";
             }
         });
     }

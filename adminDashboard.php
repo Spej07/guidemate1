@@ -1,7 +1,10 @@
 <?php
 session_start();
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header('Location: signinTouristAdmin.html');
+    header('Location: landingpage.html');
     exit;
 }
 ?>
@@ -69,6 +72,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                 <th>Guide</th>
                                 <th>Email</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="allGuidesBody"></tbody>
@@ -105,7 +109,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     <div class="panel pending-panel">
                         <div class="panel-head">
                             <h3>Pending guide bookings</h3>
-                            <span class="pending-subtitle">Tourist booking requests appear here with their requested meet time. Approve one to confirm the guide is available for that schedule.</span>
+                            <span class="pending-subtitle">Tourist booking requests appear here with their requested meet time. Only the assigned guide can accept a request.</span>
                         </div>
                         <div id="pendingBookingsContainer">
                             <p class="pending-loading" id="pendingBookingsLoading">Loading…</p>
@@ -116,7 +120,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                         <th>Guide</th>
                                         <th>Requested</th>
                                         <th>Meet time</th>
-                                        <th>Action</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="pendingBookingsBody"></tbody>
@@ -509,8 +513,8 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     <p class="security-summary-updated" id="maintenanceLogMeta"></p>
                     <p class="security-summary-updated" id="maintenanceBookingMeta"></p>
                     <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin:1rem 0;">
-                        <button type="button" class="profile-submit-btn" id="refreshMaintenanceBtn">Refresh status</button>
-                        <button type="button" class="profile-submit-btn" id="clearDebugLogBtn">Clear debug log</button>
+                        <button type="button" class="cmd-btn" id="refreshMaintenanceBtn">Refresh status</button>
+                        <button type="button" class="cmd-btn btn-danger" id="clearDebugLogBtn">Clear debug log</button>
                     </div>
                     <div class="feed-list security-recommendations" id="maintenanceRecommendations"></div>
                 </div>
@@ -540,12 +544,43 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     <script>
     (function() {
         var logoutLink = document.querySelector('a.logout-link');
-        if (logoutLink && typeof showLogoutConfirm === 'function') {
-            logoutLink.addEventListener('click', function(e) {
-                e.preventDefault();
-                showLogoutConfirm(function() { window.location.href = 'logout.php'; });
-            });
+        if (!logoutLink) return;
+
+        function clearClientSession() {
+            var activeRole = localStorage.getItem('role') || '';
+            var activeUserId = localStorage.getItem('userId') || '';
+            localStorage.removeItem('userLoggedIn');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('role');
+            localStorage.removeItem('touristId');
+            localStorage.removeItem('guideId');
+            localStorage.removeItem('firstName');
+            localStorage.removeItem('lastName');
+            localStorage.removeItem('fullName');
+            localStorage.removeItem('profileImage');
+            localStorage.removeItem('userReviews');
+
+            if (activeRole && activeUserId) {
+                localStorage.removeItem('firstName:' + activeRole + ':' + activeUserId);
+                localStorage.removeItem('lastName:' + activeRole + ':' + activeUserId);
+                localStorage.removeItem('profileName:' + activeRole + ':' + activeUserId);
+                localStorage.removeItem('profileImage:' + activeRole + ':' + activeUserId);
+            }
         }
+
+        logoutLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            var proceedLogout = function() {
+                clearClientSession();
+                window.location.href = 'logout.php';
+            };
+
+            if (typeof showLogoutConfirm === 'function') {
+                showLogoutConfirm(proceedLogout);
+            } else {
+                proceedLogout();
+            }
+        });
     })();
     (function() {
         const body = document.getElementById('pendingGuidesBody');
@@ -728,7 +763,7 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     if (body) {
                         body.innerHTML = data.map(function(b) {
                             var requestDetails = [
-                                'Waiting for admin approval',
+                                'Waiting for guide acceptance',
                                 b.tourist_message ? ('Tourist note: ' + b.tourist_message) : '',
                                 b.meeting_location ? ('Suggested location: ' + b.meeting_location) : ''
                             ].filter(Boolean).join('\n');
@@ -737,45 +772,10 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                 '<td>' + escapeHtml(b.guide_name) + '</td>' +
                                 '<td>' + escapeHtml(b.created_at || '') + '</td>' +
                                 '<td style="white-space: pre-line;">' + escapeHtml(requestDetails) + '</td>' +
-                                '<td><button type="button" class="approve-booking-btn" data-booking-id="' + b.booking_id + '">Approve booking</button></td>' +
+                                '<td>Waiting for guide</td>' +
                                 '</tr>';
                         }).join('');
                     }
-                    document.querySelectorAll('.approve-booking-btn').forEach(function(btn) {
-                        btn.addEventListener('click', function() {
-                            var id = this.getAttribute('data-booking-id');
-                            if (!id) return;
-                            if (!window.confirm('Approve this guide booking request?')) {
-                                return;
-                            }
-                            this.disabled = true;
-                            this.textContent = 'Approving…';
-                            var form = new FormData();
-                            form.append('booking_id', id);
-                            fetch('approve_booking.php', { method: 'POST', credentials: 'same-origin', body: form })
-                                .then(function(r) { return r.json(); })
-                                .then(function(res) {
-                                    if (res.ok) {
-                                        var row = document.querySelector('tr[data-booking-id="' + id + '"]');
-                                        if (row) row.remove();
-                                        loadApprovedBookings();
-                                        if (body && body.rows.length === 0) {
-                                            if (table) table.style.display = 'none';
-                                            if (empty) empty.style.display = 'block';
-                                        }
-                                    } else {
-                                        showAdminNotice(res.error || 'Could not approve booking.');
-                                        btn.disabled = false;
-                                        btn.textContent = 'Approve booking';
-                                    }
-                                })
-                                .catch(function() {
-                                    showAdminNotice('Request failed.');
-                                    btn.disabled = false;
-                                    btn.textContent = 'Approve booking';
-                                });
-                        });
-                    });
                 })
                 .catch(function() {
                     loading.style.display = 'none';
@@ -862,6 +862,10 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             var div = document.createElement('div');
             div.textContent = s;
             return div.innerHTML;
+        }
+
+        function escapeAttribute(value) {
+            return escapeHtml(value).replace(/"/g, '&quot;');
         }
 
         function formatBookingDateTime(value) {
@@ -971,12 +975,61 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     if (table) table.style.display = 'table';
                     if (body) {
                         body.innerHTML = data.map(function(g) {
+                            var canDelete = !!g.can_delete;
+                            var statusText = String(g.status || 'Pending');
+                            var normalizedStatus = statusText.toLowerCase();
+                            var statusClass = 'guide-status-pending';
+                            if (normalizedStatus === 'active') {
+                                statusClass = 'guide-status-active';
+                            } else if (normalizedStatus === 'suspended') {
+                                statusClass = 'guide-status-suspended';
+                            }
+                            var deleteAction = canDelete
+                                ? '<button type="button" class="delete-guide-btn" data-guide-id="' + g.guide_id + '" data-guide-name="' + escapeAttribute(g.name || 'this guide') + '">Delete guide</button>'
+                                : '<span class="guide-action-muted">Active guide</span>';
                             return '<tr data-guide-id="' + g.guide_id + '">' +
                                 '<td><b>' + escapeHtml(g.name) + '</b></td>' +
                                 '<td>' + escapeHtml(g.email) + '</td>' +
-                                '<td>' + escapeHtml(g.status) + '</td></tr>';
+                                '<td><span class="guide-status-badge ' + statusClass + '">' + escapeHtml(statusText) + '</span></td>' +
+                                '<td class="guide-action-cell">' + deleteAction + '</td></tr>';
                         }).join('');
                     }
+                    document.querySelectorAll('#allGuidesBody .delete-guide-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            var id = this.getAttribute('data-guide-id');
+                            var guideName = this.getAttribute('data-guide-name') || 'this guide';
+                            if (!id) return;
+                            this.disabled = true;
+
+                            showAdminConfirm('Delete ' + guideName + '? This permanently removes the guide account and cannot be undone.')
+                                .then(function(confirmed) {
+                                    if (!confirmed) {
+                                        btn.disabled = false;
+                                        return;
+                                    }
+                                    var form = new FormData();
+                                    form.append('guide_id', id);
+                                    return fetch('delete_guide_admin.php', { method: 'POST', credentials: 'same-origin', body: form })
+                                        .then(function(r) { return r.json(); })
+                                        .then(function(res) {
+                                            if (!res.ok) {
+                                                showAdminNotice(res.error || 'Could not delete guide.');
+                                                btn.disabled = false;
+                                                return;
+                                            }
+                                            showAdminNotice('Guide deleted successfully.');
+                                            loadAllGuides();
+                                            loadPending();
+                                            loadActiveGuides();
+                                            loadSuspendedGuides();
+                                        })
+                                        .catch(function() {
+                                            showAdminNotice('Request failed while deleting guide.');
+                                            btn.disabled = false;
+                                        });
+                                });
+                        });
+                    });
                 })
                 .catch(function() { loading.style.display = 'none'; if (empty) { empty.innerHTML = 'Could not load all guides.'; empty.style.display = 'block'; } });
         }
@@ -1048,10 +1101,16 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                     if (table) table.style.display = 'table';
                     if (body) {
                         body.innerHTML = data.map(function(g) {
+                            var suspensionCount = parseInt(g.suspension_count || 0, 10);
+                            if (!Number.isFinite(suspensionCount)) suspensionCount = 0;
+                            var canDeleteForMultipleSuspension = suspensionCount > 1;
+                            var deleteAction = canDeleteForMultipleSuspension
+                                ? '<button type="button" class="delete-guide-btn suspended-delete-btn" data-guide-id="' + g.guide_id + '" data-guide-name="' + escapeAttribute(g.name || 'this guide') + '">Delete guide</button>'
+                                : '<span class="guide-action-muted">Delete allowed after multiple suspensions</span>';
                             return '<tr data-guide-id="' + g.guide_id + '">' +
                                 '<td><b>' + escapeHtml(g.name) + '</b></td>' +
                                 '<td>' + escapeHtml(g.suspended_until || '—') + '</td>' +
-                                '<td><button type="button" class="pardon-btn" data-guide-id="' + g.guide_id + '">Re-add to landing page</button></td></tr>';
+                                '<td><span class="punish-actions"><button type="button" class="pardon-btn" data-guide-id="' + g.guide_id + '">Re-add to landing page</button> ' + deleteAction + '</span></td></tr>';
                         }).join('');
                     }
                     document.querySelectorAll('#suspendedGuidesBody .pardon-btn').forEach(function(btn) {
@@ -1067,6 +1126,42 @@ if (empty($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                                     if (res.ok) { loadAllGuides(); loadActiveGuides(); loadSuspendedGuides(); } else { this.disabled = false; }
                                 }.bind(this))
                                 .catch(function() { this.disabled = false; }.bind(this));
+                        });
+                    });
+                    document.querySelectorAll('#suspendedGuidesBody .suspended-delete-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            var id = this.getAttribute('data-guide-id');
+                            var guideName = this.getAttribute('data-guide-name') || 'this guide';
+                            if (!id) return;
+                            this.disabled = true;
+
+                            showAdminConfirm('Delete ' + guideName + '? This permanently removes the guide account and cannot be undone.')
+                                .then(function(confirmed) {
+                                    if (!confirmed) {
+                                        btn.disabled = false;
+                                        return;
+                                    }
+                                    var form = new FormData();
+                                    form.append('guide_id', id);
+                                    return fetch('delete_guide_admin.php', { method: 'POST', credentials: 'same-origin', body: form })
+                                        .then(function(r) { return r.json(); })
+                                        .then(function(res) {
+                                            if (!res.ok) {
+                                                showAdminNotice(res.error || 'Could not delete guide.');
+                                                btn.disabled = false;
+                                                return;
+                                            }
+                                            showAdminNotice('Guide deleted successfully.');
+                                            loadAllGuides();
+                                            loadPending();
+                                            loadActiveGuides();
+                                            loadSuspendedGuides();
+                                        })
+                                        .catch(function() {
+                                            showAdminNotice('Request failed while deleting guide.');
+                                            btn.disabled = false;
+                                        });
+                                });
                         });
                     });
                 })

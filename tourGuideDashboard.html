@@ -90,12 +90,37 @@
             }
         })();
         function handleLogout() {
+            function clearStoredSessionState() {
+                var activeRole = localStorage.getItem('role') || '';
+                var activeUserId = localStorage.getItem('userId') || '';
+
+                localStorage.removeItem('userLoggedIn');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('role');
+                localStorage.removeItem('touristId');
+                localStorage.removeItem('guideId');
+                localStorage.removeItem('firstName');
+                localStorage.removeItem('lastName');
+                localStorage.removeItem('fullName');
+                localStorage.removeItem('profileImage');
+                localStorage.removeItem('userReviews');
+
+                if (activeRole && activeUserId) {
+                    localStorage.removeItem('firstName:' + activeRole + ':' + activeUserId);
+                    localStorage.removeItem('lastName:' + activeRole + ':' + activeUserId);
+                    localStorage.removeItem('profileName:' + activeRole + ':' + activeUserId);
+                    localStorage.removeItem('profileImage:' + activeRole + ':' + activeUserId);
+                }
+            }
+
             if (typeof showLogoutConfirm === 'function') {
                 showLogoutConfirm(function() {
-                    window.location.href = "index.html";
+                    clearStoredSessionState();
+                    window.location.href = "logout.php";
                 });
             } else {
-                window.location.href = "index.html";
+                clearStoredSessionState();
+                window.location.href = "logout.php";
             }
         }
     </script>

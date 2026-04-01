@@ -68,6 +68,8 @@ if ($result) {
             'guide_id' => $guideId,
             'name' => trim($row['first_name'] . ' ' . $row['last_name']),
             'description' => $description,
+            'specialization' => $spec,
+            'service_areas' => $areas,
             'image' => !empty($row['profile_image']) ? $row['profile_image'] : 'photos/default.jpg',
             'rating' => (float)$guideRatings['avg_rating'],
             'review_count' => (int)$guideRatings['review_count'],

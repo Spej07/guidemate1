@@ -24,7 +24,12 @@ if (!$col || $col->num_rows === 0) {
     }
 }
 
-$stmt = $mysqli->prepare("SELECT guide_id, first_name, last_name, email, phone_number, profile_image FROM tour_guides WHERE status = 'Pending' ORDER BY guide_id DESC");
+$stmt = $mysqli->prepare("
+    SELECT guide_id, first_name, last_name, email, phone_number, profile_image
+    FROM tour_guides
+    WHERE (status = 'Pending' OR status IS NULL OR status = '')
+    ORDER BY guide_id DESC
+");
 $stmt->execute();
 $result = $stmt->get_result();
 $guides = [];

@@ -20,7 +20,31 @@ if ($guide_id <= 0) {
     exit;
 }
 
-$stmt = $mysqli->prepare("UPDATE tour_guides SET status = 'Active' WHERE guide_id = ? AND status = 'Pending'");
+// Keep approval working even on databases that do not have these columns yet.
+$statusCol = $mysqli->query("SHOW COLUMNS FROM tour_guides LIKE 'status'");
+if (!$statusCol || $statusCol->num_rows === 0) {
+    $mysqli->query("ALTER TABLE tour_guides ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'Pending'");
+    if ($mysqli->error) {
+        echo json_encode(['ok' => false, 'error' => 'Could not prepare guide status for approval.']);
+        exit;
+    }
+}
+
+$hasSuspendedUntil = false;
+$suspendedCol = $mysqli->query("SHOW COLUMNS FROM tour_guides LIKE 'suspended_until'");
+if ($suspendedCol && $suspendedCol->num_rows > 0) {
+    $hasSuspendedUntil = true;
+}
+
+$sql = "UPDATE tour_guides
+        SET status = 'Active'" . ($hasSuspendedUntil ? ", suspended_until = NULL" : "") . "
+        WHERE guide_id = ?
+          AND (status = 'Pending' OR status IS NULL OR status = '')";
+$stmt = $mysqli->prepare($sql);
+if (!$stmt) {
+    echo json_encode(['ok' => false, 'error' => 'Could not prepare approval query.']);
+    exit;
+}
 $stmt->bind_param('i', $guide_id);
 $stmt->execute();
 

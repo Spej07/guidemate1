@@ -32,7 +32,17 @@ if (!$col || $col->num_rows === 0) {
     }
 }
 
-$stmt = $mysqli->prepare("UPDATE tour_guides SET suspended_until = DATE_ADD(CURDATE(), INTERVAL ? DAY) WHERE guide_id = ? AND status = 'Active'");
+// Track repeated suspensions for admin moderation decisions.
+$countCol = $mysqli->query("SHOW COLUMNS FROM tour_guides LIKE 'suspension_count'");
+if (!$countCol || $countCol->num_rows === 0) {
+    $mysqli->query("ALTER TABLE tour_guides ADD COLUMN suspension_count INT UNSIGNED NOT NULL DEFAULT 0");
+    if ($mysqli->error) {
+        echo json_encode(['ok' => false, 'error' => 'Database update failed.']);
+        exit;
+    }
+}
+
+$stmt = $mysqli->prepare("UPDATE tour_guides SET suspended_until = DATE_ADD(CURDATE(), INTERVAL ? DAY), suspension_count = COALESCE(suspension_count, 0) + 1 WHERE guide_id = ? AND status = 'Active'");
 $stmt->bind_param('ii', $days, $guide_id);
 $stmt->execute();
 

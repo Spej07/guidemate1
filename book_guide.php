@@ -95,7 +95,7 @@ $guideName = trim(($guide['first_name'] ?? '') . ' ' . ($guide['last_name'] ?? '
 echo json_encode([
     'ok' => true,
     'message' => $guideName !== ''
-        ? 'Booking request sent to ' . $guideName . '. Wait for admin approval, then your guide can message you about the meeting time and place.'
-        : 'Booking request sent. Wait for admin approval, then your guide can message you about the meeting time and place.'
+        ? 'Booking request sent to ' . $guideName . '. Wait for the guide to accept, then they can message you about the meeting time and place.'
+        : 'Booking request sent. Wait for the guide to accept, then they can message you about the meeting time and place.'
 ]);
 ?>

@@ -224,7 +224,7 @@
                 <a href="tourGuideProfile.html">Profile</a>
                 <a href="tourGuideDashboardNew.html">Dashboard</a>
                 <hr>
-                <span class="sign-out-link" onclick="handleLogout()">Sign out</span>
+                <button type="button" class="sign-out-link" onclick="handleLogout()">Sign out</button>
             </div>
         </div>
     </div>
@@ -235,7 +235,7 @@
         
         <span id="bookingHeroLabel" style="font-weight: 600; letter-spacing: 3px; color: #51ff9a; text-transform: uppercase;">Current Assignment</span>
         <h1 id="bookingHeroTitle">No approved booking yet</h1>
-        <p id="bookingHeroText">When an admin approves a tourist's booking request, the tourist name will appear here.</p>
+        <p id="bookingHeroText">When you accept a tourist booking request, the tourist name will appear here.</p>
         <p id="bookingHeroMeta" style="font-weight: 600; color: rgba(255,255,255,0.92); margin-top: 10px;"></p>
         <div id="bookingHeroActions" style="display: none; gap: 12px; flex-wrap: wrap;">
             <button class="btn btn-primary" style="background: white; color: var(--accent);">ACTIVATE GPS</button>
@@ -294,7 +294,7 @@
             <div class="glass-card">
                 <div class="icon-box"><i data-feather="calendar"></i></div>
                 <h3 id="scheduleCardTitle" style="margin-top: 0;">My Schedule</h3>
-                <p id="scheduleCardText">No approved tourist booking yet. Your current guide assignment will appear here once an admin approves it.</p>
+                <p id="scheduleCardText">No accepted tourist booking yet. Your current guide assignment will appear here once you accept a request.</p>
                 <button id="scheduleCardButton" class="btn btn-outline" style="width: 100%;">VIEW STATUS</button>
             </div>
 
@@ -309,6 +309,23 @@
                 </div>
             </div>
         </div>
+
+        <h2 style="margin-top: 28px;">Pending booking requests</h2>
+        <div class="glass-card" style="padding: 20px;">
+            <p id="guidePendingBookingsLoading" style="color: #666; margin: 0 0 12px 0;">Loading…</p>
+            <table id="guidePendingBookingsTable" style="width: 100%; border-collapse: collapse; display: none;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding: 10px 8px;">Tourist</th>
+                        <th style="text-align:left; padding: 10px 8px;">Requested</th>
+                        <th style="text-align:left; padding: 10px 8px;">Details</th>
+                        <th style="text-align:left; padding: 10px 8px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="guidePendingBookingsBody"></tbody>
+            </table>
+            <p id="guidePendingBookingsEmpty" style="display:none; color:#666; margin: 0;">No pending booking requests.</p>
+        </div>
     </section>
 
     <section class="reviews">
@@ -321,7 +338,7 @@
                 </div>
                 <h3 id="bookingTaskTitle" style="margin: 0 0 10px 0;">No active booking</h3>
                 <p id="bookingTaskPrimaryLine" style="margin: 5px 0;"><i data-feather="users" style="width: 16px;"></i> Waiting for a tourist booking.</p>
-                <p id="bookingTaskSecondaryLine" style="margin: 5px 0;"><i data-feather="calendar" style="width: 16px;"></i> Approved booking details will appear here.</p>
+                <p id="bookingTaskSecondaryLine" style="margin: 5px 0;"><i data-feather="calendar" style="width: 16px;"></i> Accepted booking details will appear here.</p>
                 <div style="display: flex; gap: 12px; margin-top: 20px;">
                     <button class="btn btn-primary" style="flex: 1;">Check-in</button>
                     <button id="bookingMessageBtn" class="btn btn-outline" style="flex: 1;" disabled>Contact</button>

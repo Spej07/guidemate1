@@ -30,13 +30,15 @@ if ($result) {
         $status = $hasStatus ? ($row['status'] ?? 'Pending') : 'Pending';
         $suspendedUntil = ($hasSuspended && !empty($row['suspended_until'])) ? $row['suspended_until'] : null;
         $isSuspended = $hasSuspended && $suspendedUntil && $suspendedUntil > date('Y-m-d');
-        $displayStatus = $isSuspended ? 'Suspended until ' . $suspendedUntil : $status;
+        $isActiveNow = ($status === 'Active' && !$isSuspended);
+        $displayStatus = $isSuspended ? 'Suspended' : $status;
         $guides[] = [
             'guide_id' => (int) $row['guide_id'],
             'name' => trim($row['first_name'] . ' ' . $row['last_name']),
             'email' => $row['email'],
             'status' => $displayStatus,
-            'is_on_landing' => ($status === 'Active' && !$isSuspended),
+            'is_on_landing' => $isActiveNow,
+            'can_delete' => !$isActiveNow,
         ];
     }
 }
